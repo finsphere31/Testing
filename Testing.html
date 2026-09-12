@@ -63,6 +63,69 @@
         <button class="add-row-btn" style="width: 100%; padding: 10px; margin-top: 8px;" onclick="executeLogin()">Access Workspace</button>
     </div>
 </div>
+<!-- Add this directly underneath the "Access Workspace" button -->
+<button
+    type="button"
+    onclick="openRegisterModal()"
+    style="margin-top:10px; background:none; border:none; color:#0284c7; font-size:12px; font-weight:700; cursor:pointer;">
+    Create New Account
+</button>
+
+<!-- Registration Modal -->
+<div class="modal-overlay" id="registerModal">
+    <div class="modal-box">
+        <h4 style="margin-bottom:6px;">Create Account</h4>
+        <p style="font-size:11px; color:#64748b; margin-bottom:12px;">
+            Create a new StockTrack workspace
+        </p>
+
+        <input
+            type="text"
+            id="registerUsername"
+            class="modal-input-field"
+            placeholder="Username">
+
+        <input
+            type="password"
+            id="registerPassword"
+            class="modal-input-field"
+            placeholder="Password">
+
+        <input
+            type="password"
+            id="registerConfirmPassword"
+            class="modal-input-field"
+            placeholder="Confirm Password">
+
+        <input
+            type="text"
+            id="registerCompanyId"
+            class="modal-input-field"
+            placeholder="Company ID (e.g. COMPANY001)">
+
+        <input
+            type="text"
+            id="registerCompanyName"
+            class="modal-input-field"
+            placeholder="Company Name">
+
+        <div style="display:flex; gap:8px; margin-top:4px;">
+            <button
+                class="action-btn"
+                style="flex:1;"
+                onclick="closeModal('registerModal')">
+                Cancel
+            </button>
+
+            <button
+                class="add-row-btn"
+                style="flex:1;"
+                onclick="executeRegister()">
+                Register
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- Main Core Application -->
 <div id="main-app-content" style="display:none;">
@@ -438,6 +501,58 @@
     if (sessionToken && currentUser) {
         bootstrapApp();
     }
+
+    function openRegisterModal() {
+    document.getElementById('registerUsername').value = '';
+    document.getElementById('registerPassword').value = '';
+    document.getElementById('registerConfirmPassword').value = '';
+    document.getElementById('registerCompanyId').value = '';
+    document.getElementById('registerCompanyName').value = '';
+
+    document.getElementById('registerModal').style.display = 'flex';
+}
+
+async function executeRegister() {
+    const username = document.getElementById('registerUsername').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('registerConfirmPassword').value;
+    const companyId = document.getElementById('registerCompanyId').value.trim();
+    const companyName = document.getElementById('registerCompanyName').value.trim();
+
+    if (!username || !password || !confirmPassword || !companyId || !companyName) {
+        return showToast("Complete all fields", "error");
+    }
+
+    if (password !== confirmPassword) {
+        return showToast("Passwords do not match", "error");
+    }
+
+    if (password.length < 6) {
+        return showToast("Password must be at least 6 characters", "error");
+    }
+
+    const res = await callBackend('REGISTER', {
+        username: username,
+        password: password,
+        company_id: companyId,
+        company_name: companyName
+    });
+
+    if (res.success) {
+        closeModal('registerModal');
+
+        document.getElementById('loginUsername').value = username;
+        document.getElementById('loginPassword').value = password;
+
+        showToast("Account created. Logging in...");
+
+        // Automatically log the new user in
+        await executeLogin();
+    } else {
+        showToast(res.message || "Registration failed", "error");
+    }
+}
+
 </script>
 </body>
 </html>
