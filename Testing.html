@@ -196,7 +196,7 @@
 
 <script>
     // Paste your Google Apps Script Web App Deployment URL here
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycby4OeCy64fRYEW8oFS6v_rf_ch_iENQHFvByYCJqIh0DwZEGBy9oWtqqvHIR7BCVvEZ/exec";
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw0CjiZsZdGY5mC-OYRaYHwf_QkhfSRomrKOqIqEqSCXU7j8oeM6wLsDCwslq_BGCUS/exec";
 
     let sessionToken = localStorage.getItem('finsphere_token') || null;
     let currentUser = JSON.parse(localStorage.getItem('finsphere_user')) || null;
@@ -218,6 +218,7 @@
         const body = { action, token: sessionToken, selected_company_id: activeCompanyId, ...payload };
         const res = await fetch(GAS_API_URL, {
             method: 'POST',
+            redirect: 'follow', // Ensures browser follows Google's 302 redirect
             headers: {
                 'Content-Type': 'text/plain;charset=utf-8'
             },
