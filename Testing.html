@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>StockTrack - Multi-Tenant Hub</title>
-   <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22StockTrack%22%2C%22short_name%22%3A%22StockTrack%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%23ffffff%22%7D">
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22StockTrack%22%2C%22short_name%22%3A%22StockTrack%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%23ffffff%22%7D">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { width: 100%; height: 100%; background: #f8fafc; color: #0f172a; padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)); }
@@ -41,9 +41,9 @@
         .bottom-nav-item.active { color: #0284c7; }
         
         #auth-screen-container { position: fixed; inset: 0; background: radial-gradient(circle at top, #0369a1, #0f172a); display: flex; align-items: center; justify-content: center; z-index: 100000; padding: 16px; }
-        .auth-card { background: #ffffff; border-radius: 18px; width: 100%; max-width: 350px; padding: 24px; text-align: center; }
+        .auth-card { background: #ffffff; border-radius: 18px; width: 100%; max-width: 350px; padding: 24px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         
-        #fintrack-toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-100px); z-index: 9999999; padding: 10px 18px; border-radius: 10px; font-size: 12.5px; font-weight: 700; color: #ffffff; opacity: 0; transition: 0.3s; }
+        #fintrack-toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-100px); z-index: 9999999; padding: 10px 18px; border-radius: 10px; font-size: 12.5px; font-weight: 700; color: #ffffff; opacity: 0; transition: 0.3s; pointer-events: none; }
         #fintrack-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         #fintrack-toast.success { background: #059669; }
         #fintrack-toast.error { background: #dc2626; }
@@ -61,68 +61,29 @@
         <input type="text" id="loginUsername" class="modal-input-field" placeholder="Username (e.g. user_a or superadmin)">
         <input type="password" id="loginPassword" class="modal-input-field" placeholder="Password">
         <button class="add-row-btn" style="width: 100%; padding: 10px; margin-top: 8px;" onclick="executeLogin()">Access Workspace</button>
+        <div style="margin-top: 14px;">
+            <button type="button" onclick="openRegisterModal()" style="background:none; border:none; color:#0284c7; font-size:12px; font-weight:700; cursor:pointer;">
+                Create New Account
+            </button>
+        </div>
     </div>
 </div>
-<!-- Add this directly underneath the "Access Workspace" button -->
-<button
-    type="button"
-    onclick="openRegisterModal()"
-    style="margin-top:10px; background:none; border:none; color:#0284c7; font-size:12px; font-weight:700; cursor:pointer;">
-    Create New Account
-</button>
 
 <!-- Registration Modal -->
 <div class="modal-overlay" id="registerModal">
     <div class="modal-box">
         <h4 style="margin-bottom:6px;">Create Account</h4>
-        <p style="font-size:11px; color:#64748b; margin-bottom:12px;">
-            Create a new StockTrack workspace
-        </p>
+        <p style="font-size:11px; color:#64748b; margin-bottom:12px;">Create a new StockTrack workspace</p>
 
-        <input
-            type="text"
-            id="registerUsername"
-            class="modal-input-field"
-            placeholder="Username">
+        <input type="text" id="registerUsername" class="modal-input-field" placeholder="Username">
+        <input type="password" id="registerPassword" class="modal-input-field" placeholder="Password">
+        <input type="password" id="registerConfirmPassword" class="modal-input-field" placeholder="Confirm Password">
+        <input type="text" id="registerCompanyId" class="modal-input-field" placeholder="Company ID (e.g. COMPANY001)">
+        <input type="text" id="registerCompanyName" class="modal-input-field" placeholder="Company Name">
 
-        <input
-            type="password"
-            id="registerPassword"
-            class="modal-input-field"
-            placeholder="Password">
-
-        <input
-            type="password"
-            id="registerConfirmPassword"
-            class="modal-input-field"
-            placeholder="Confirm Password">
-
-        <input
-            type="text"
-            id="registerCompanyId"
-            class="modal-input-field"
-            placeholder="Company ID (e.g. COMPANY001)">
-
-        <input
-            type="text"
-            id="registerCompanyName"
-            class="modal-input-field"
-            placeholder="Company Name">
-
-        <div style="display:flex; gap:8px; margin-top:4px;">
-            <button
-                class="action-btn"
-                style="flex:1;"
-                onclick="closeModal('registerModal')">
-                Cancel
-            </button>
-
-            <button
-                class="add-row-btn"
-                style="flex:1;"
-                onclick="executeRegister()">
-                Register
-            </button>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="action-btn" style="flex:1;" onclick="closeModal('registerModal')">Cancel</button>
+            <button class="add-row-btn" style="flex:1;" onclick="executeRegister()">Register</button>
         </div>
     </div>
 </div>
@@ -226,12 +187,12 @@
 <!-- Add Product Modal -->
 <div class="modal-overlay" id="productModal">
     <div class="modal-box">
-        <h4>Save Product</h4>
+        <h4 style="margin-bottom:8px;">Save Product</h4>
         <input type="text" id="mProdName" class="modal-input-field" placeholder="Product Name">
         <input type="text" id="mProdSupplier" class="modal-input-field" placeholder="Supplier">
         <input type="number" id="mProdQty" class="modal-input-field" placeholder="Opening Stock">
         <input type="number" id="mProdThreshold" class="modal-input-field" placeholder="Low Stock Threshold" value="2">
-        <div style="display:flex; gap:8px;">
+        <div style="display:flex; gap:8px; margin-top:8px;">
             <button class="action-btn" style="flex:1;" onclick="closeModal('productModal')">Cancel</button>
             <button class="add-row-btn" style="flex:1;" onclick="submitProduct()">Save</button>
         </div>
@@ -241,7 +202,7 @@
 <!-- Add Transaction Modal -->
 <div class="modal-overlay" id="txModal">
     <div class="modal-box">
-        <h4>Record Transaction</h4>
+        <h4 style="margin-bottom:8px;">Record Transaction</h4>
         <input type="date" id="mTxDate" class="modal-input-field">
         <select id="mTxProduct" class="modal-input-field"></select>
         <select id="mTxType" class="modal-input-field">
@@ -250,7 +211,7 @@
         </select>
         <input type="number" id="mTxQty" class="modal-input-field" placeholder="Quantity">
         <input type="text" id="mTxDesc" class="modal-input-field" placeholder="Notes / Reference">
-        <div style="display:flex; gap:8px;">
+        <div style="display:flex; gap:8px; margin-top:8px;">
             <button class="action-btn" style="flex:1;" onclick="closeModal('txModal')">Cancel</button>
             <button class="add-row-btn" style="flex:1;" onclick="submitTransaction()">Save</button>
         </div>
@@ -258,16 +219,21 @@
 </div>
 
 <script>
-    // Paste your Google Apps Script Web App Deployment URL here
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzqAo_EGXqWMNrsadOHCC6gUBWyUQu0wzdGWjcwpLpjMWpGxj3gqXCaD6datnWd-7eA/exec";
 
     let sessionToken = localStorage.getItem('finsphere_token') || null;
-    let currentUser = JSON.parse(localStorage.getItem('finsphere_user')) || null;
+    let currentUser = JSON.parse(localStorage.getItem('finsphere_user') || 'null');
     let activeCompanyId = localStorage.getItem('finsphere_active_company') || null;
-    let companiesCache = JSON.parse(localStorage.getItem('finsphere_companies')) || [];
+    let companiesCache = JSON.parse(localStorage.getItem('finsphere_companies') || '[]');
     
     let products = [];
     let transactions = [];
+
+    function escapeHtml(str) {
+        return String(str || '').replace(/[&<>"']/g, m => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[m]));
+    }
 
     function showToast(msg, type = 'success') {
         const el = document.getElementById('fintrack-toast');
@@ -276,24 +242,22 @@
         setTimeout(() => el.className = '', 3000);
     }
 
-   async function callBackend(action, payload = {}) {
-    try {
-        const body = { action, token: sessionToken, selected_company_id: activeCompanyId, ...payload };
-        const res = await fetch(GAS_API_URL, {
-            method: 'POST',
-            redirect: 'follow', // Ensures browser follows Google's 302 redirect
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8'
-            },
-            body: JSON.stringify(body)
-        });
-        return await res.json();
-    } catch (e) {
-        console.error("Fetch error:", e);
-        showToast("Connection failed", "error");
-        return { success: false };
+    async function callBackend(action, payload = {}) {
+        try {
+            const body = { action, token: sessionToken, selected_company_id: activeCompanyId, ...payload };
+            const res = await fetch(GAS_API_URL, {
+                method: 'POST',
+                redirect: 'follow',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(body)
+            });
+            return await res.json();
+        } catch (e) {
+            console.error("Fetch error:", e);
+            showToast("Connection failed", "error");
+            return { success: false };
+        }
     }
-}
 
     async function executeLogin() {
         const u = document.getElementById('loginUsername').value.trim();
@@ -327,12 +291,11 @@
         document.getElementById('auth-screen-container').style.display = 'none';
         document.getElementById('main-app-content').style.display = 'block';
         
-        // Superadmin switcher setup
-        if (currentUser.role === 'superadmin') {
+        if (currentUser && currentUser.role === 'superadmin') {
             const sel = document.getElementById('superAdminCompanySelect');
             sel.style.display = 'inline-block';
             sel.innerHTML = companiesCache.map(c => 
-                `<option value="${c.company_id}" ${c.company_id === activeCompanyId ? 'selected' : ''}>${c.company_name} (${c.company_id})</option>`
+                `<option value="${escapeHtml(c.company_id)}" ${c.company_id === activeCompanyId ? 'selected' : ''}>${escapeHtml(c.company_name)} (${escapeHtml(c.company_id)})</option>`
             ).join('');
             if (!activeCompanyId && companiesCache.length > 0) {
                 activeCompanyId = companiesCache[0].company_id;
@@ -345,7 +308,7 @@
 
     function renderHeaderPill() {
         document.getElementById('tenantPillContainer').innerHTML = 
-            `<span class="tenant-selector-pill">🏢 Tenant: ${activeCompanyId}</span>`;
+            `<span class="tenant-selector-pill">🏢 Tenant: ${escapeHtml(activeCompanyId)}</span>`;
         document.getElementById('heroGreeting').innerText = `Workspace: ${activeCompanyId}`;
     }
 
@@ -360,31 +323,32 @@
     async function loadCompanyData() {
         const res = await callBackend('GET_TENANT_DATA');
         if (res.success) {
-            products = res.products;
-            transactions = res.transactions;
+            products = res.products || [];
+            transactions = res.transactions || [];
             renderAllViews();
         }
     }
 
     function getProductCurrentStock(productName) {
-        const p = products.find(i => i.name.toLowerCase() === productName.toLowerCase());
-        let total = p ? p.qty : 0;
+        const p = products.find(i => (i.name || '').toLowerCase() === (productName || '').toLowerCase());
+        let total = p ? (Number(p.qty) || 0) : 0;
         transactions.forEach(t => {
-            if (t.product.toLowerCase() === productName.toLowerCase()) {
-                if (t.type === 'purchase') total += t.qty;
-                if (t.type === 'sales') total -= t.qty;
+            if ((t.product || '').toLowerCase() === (productName || '').toLowerCase()) {
+                const qty = Number(t.qty) || 0;
+                if (t.type === 'purchase') total += qty;
+                if (t.type === 'sales') total -= qty;
             }
         });
         return total;
     }
 
     function renderAllViews() {
-        // Render Dashboard
         let totalUnits = 0, inUnits = 0, outUnits = 0;
         products.forEach(p => totalUnits += getProductCurrentStock(p.name));
         transactions.forEach(t => {
-            if (t.type === 'purchase') inUnits += t.qty;
-            if (t.type === 'sales') outUnits += t.qty;
+            const qty = Number(t.qty) || 0;
+            if (t.type === 'purchase') inUnits += qty;
+            if (t.type === 'sales') outUnits += qty;
         });
 
         document.getElementById('heroTotalUnits').innerText = `${totalUnits} Units`;
@@ -392,29 +356,27 @@
         document.getElementById('dashInCount').innerText = inUnits;
         document.getElementById('dashOutCount').innerText = outUnits;
 
-        // Render Inventory Table
         const pTbody = document.getElementById('productTableBody');
-        pTbody.innerHTML = products.map(p => {
+        pTbody.innerHTML = products.map((p, idx) => {
             const stock = getProductCurrentStock(p.name);
             return `<tr>
-                <td><strong>${p.name}</strong></td>
-                <td>${p.supplier || '-'}</td>
+                <td><strong>${escapeHtml(p.name)}</strong></td>
+                <td>${escapeHtml(p.supplier) || '-'}</td>
                 <td class="num" style="font-weight:bold; color:${stock <= p.threshold ? '#ef4444' : '#0f172a'}">${stock}</td>
                 <td>${p.threshold}</td>
-                <td><button class="action-btn" onclick="deleteProduct('${p.name}')">🗑️</button></td>
+                <td><button class="action-btn" onclick="deleteProductByIndex(${idx})">🗑️</button></td>
             </tr>`;
         }).join('') || '<tr><td colspan="5" style="text-align:center;">No records</td></tr>';
 
-        // Render Transactions Table
         const tTbody = document.getElementById('txTableBody');
-        tTbody.innerHTML = transactions.map(t => `
+        tTbody.innerHTML = transactions.map((t, idx) => `
             <tr>
-                <td>${t.date}</td>
-                <td><strong>${t.product}</strong></td>
-                <td style="color:${t.type === 'purchase' ? '#059669' : '#dc2626'}">${t.type.toUpperCase()}</td>
+                <td>${escapeHtml(t.date)}</td>
+                <td><strong>${escapeHtml(t.product)}</strong></td>
+                <td style="color:${t.type === 'purchase' ? '#059669' : '#dc2626'}">${escapeHtml((t.type || '').toUpperCase())}</td>
                 <td class="num">${t.qty}</td>
-                <td>${t.desc || '-'}</td>
-                <td><button class="action-btn" onclick="deleteTx('${t.id}')">🗑️</button></td>
+                <td>${escapeHtml(t.desc) || '-'}</td>
+                <td><button class="action-btn" onclick="deleteTxByIndex(${idx})">🗑️</button></td>
             </tr>
         `).join('') || '<tr><td colspan="6" style="text-align:center;">No records</td></tr>';
     }
@@ -432,6 +394,7 @@
         document.getElementById('mProdName').value = '';
         document.getElementById('mProdSupplier').value = '';
         document.getElementById('mProdQty').value = '';
+        document.getElementById('mProdThreshold').value = '2';
         document.getElementById('productModal').style.display = 'flex';
     }
 
@@ -439,8 +402,8 @@
         const item = {
             name: document.getElementById('mProdName').value.trim(),
             supplier: document.getElementById('mProdSupplier').value.trim(),
-            qty: parseInt(document.getElementById('mProdQty').value) || 0,
-            threshold: parseInt(document.getElementById('mProdThreshold').value) || 2
+            qty: parseInt(document.getElementById('mProdQty').value, 10) || 0,
+            threshold: parseInt(document.getElementById('mProdThreshold').value, 10) || 2
         };
         if (!item.name) return showToast("Name required", "error");
 
@@ -452,9 +415,10 @@
         }
     }
 
-    async function deleteProduct(name) {
-        if (!confirm(`Delete product ${name}?`)) return;
-        const res = await callBackend('DELETE_PRODUCT', { product_name: name });
+    async function deleteProductByIndex(idx) {
+        const p = products[idx];
+        if (!p || !confirm(`Delete product "${p.name}"?`)) return;
+        const res = await callBackend('DELETE_PRODUCT', { product_name: p.name });
         if (res.success) {
             loadCompanyData();
             showToast("Product deleted");
@@ -462,8 +426,9 @@
     }
 
     function openTxModal() {
+        if (!products.length) return showToast("Add a product first", "error");
         const sel = document.getElementById('mTxProduct');
-        sel.innerHTML = products.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+        sel.innerHTML = products.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('');
         document.getElementById('mTxDate').value = new Date().toISOString().split('T')[0];
         document.getElementById('mTxQty').value = '';
         document.getElementById('mTxDesc').value = '';
@@ -475,7 +440,7 @@
             date: document.getElementById('mTxDate').value,
             product: document.getElementById('mTxProduct').value,
             type: document.getElementById('mTxType').value,
-            qty: parseInt(document.getElementById('mTxQty').value) || 0,
+            qty: parseInt(document.getElementById('mTxQty').value, 10) || 0,
             desc: document.getElementById('mTxDesc').value.trim()
         };
         if (!tx.date || !tx.product || tx.qty <= 0) return showToast("Invalid transaction input", "error");
@@ -488,71 +453,63 @@
         }
     }
 
-    async function deleteTx(id) {
-        if (!confirm("Delete transaction?")) return;
-        const res = await callBackend('DELETE_TRANSACTION', { tx_id: id });
+    async function deleteTxByIndex(idx) {
+        const t = transactions[idx];
+        if (!t || !confirm("Delete transaction?")) return;
+        const res = await callBackend('DELETE_TRANSACTION', { tx_id: t.id });
         if (res.success) {
             loadCompanyData();
             showToast("Transaction removed");
         }
     }
 
-    // Initialize application state
+    function openRegisterModal() {
+        document.getElementById('registerUsername').value = '';
+        document.getElementById('registerPassword').value = '';
+        document.getElementById('registerConfirmPassword').value = '';
+        document.getElementById('registerCompanyId').value = '';
+        document.getElementById('registerCompanyName').value = '';
+        document.getElementById('registerModal').style.display = 'flex';
+    }
+
+    async function executeRegister() {
+        const username = document.getElementById('registerUsername').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('registerConfirmPassword').value;
+        const companyId = document.getElementById('registerCompanyId').value.trim();
+        const companyName = document.getElementById('registerCompanyName').value.trim();
+
+        if (!username || !password || !confirmPassword || !companyId || !companyName) {
+            return showToast("Complete all fields", "error");
+        }
+        if (password !== confirmPassword) {
+            return showToast("Passwords do not match", "error");
+        }
+        if (password.length < 6) {
+            return showToast("Password must be at least 6 characters", "error");
+        }
+
+        const res = await callBackend('REGISTER', {
+            username,
+            password,
+            company_id: companyId,
+            company_name: companyName
+        });
+
+        if (res.success) {
+            closeModal('registerModal');
+            document.getElementById('loginUsername').value = username;
+            document.getElementById('loginPassword').value = password;
+            showToast("Account created. Logging in...");
+            await executeLogin();
+        } else {
+            showToast(res.message || "Registration failed", "error");
+        }
+    }
+
     if (sessionToken && currentUser) {
         bootstrapApp();
     }
-
-    function openRegisterModal() {
-    document.getElementById('registerUsername').value = '';
-    document.getElementById('registerPassword').value = '';
-    document.getElementById('registerConfirmPassword').value = '';
-    document.getElementById('registerCompanyId').value = '';
-    document.getElementById('registerCompanyName').value = '';
-
-    document.getElementById('registerModal').style.display = 'flex';
-}
-
-async function executeRegister() {
-    const username = document.getElementById('registerUsername').value.trim();
-    const password = document.getElementById('registerPassword').value;
-    const confirmPassword = document.getElementById('registerConfirmPassword').value;
-    const companyId = document.getElementById('registerCompanyId').value.trim();
-    const companyName = document.getElementById('registerCompanyName').value.trim();
-
-    if (!username || !password || !confirmPassword || !companyId || !companyName) {
-        return showToast("Complete all fields", "error");
-    }
-
-    if (password !== confirmPassword) {
-        return showToast("Passwords do not match", "error");
-    }
-
-    if (password.length < 6) {
-        return showToast("Password must be at least 6 characters", "error");
-    }
-
-    const res = await callBackend('REGISTER', {
-        username: username,
-        password: password,
-        company_id: companyId,
-        company_name: companyName
-    });
-
-    if (res.success) {
-        closeModal('registerModal');
-
-        document.getElementById('loginUsername').value = username;
-        document.getElementById('loginPassword').value = password;
-
-        showToast("Account created. Logging in...");
-
-        // Automatically log the new user in
-        await executeLogin();
-    } else {
-        showToast(res.message || "Registration failed", "error");
-    }
-}
-
 </script>
 </body>
 </html>
