@@ -3,208 +3,574 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>StockTrack - Multi-Tenant Hub</title>
-    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22StockTrack%22%2C%22short_name%22%3A%22StockTrack%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%23ffffff%22%7D">
+    <title>StockBook - Multi-Tenant Hub</title>
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22StockBook%22%2C%22short_name%22%3A%22StockBook%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%23ffffff%22%7D">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { width: 100%; height: 100%; background: #f8fafc; color: #0f172a; padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)); }
-        
-        .app-header { background: #ffffff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #e2e8f0; }
-        .app-header-left { display: flex; align-items: center; gap: 10px; }
-        .brand-icon-box { width: 34px; height: 34px; background: linear-gradient(135deg, #0284c7, #0369a1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 16px; }
-        .tenant-selector-pill { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 800; }
-        
-        .app-screen-section { width: 100%; max-width: 1200px; margin: 0 auto; padding: 12px; }
-        .hero-banner-card { background: linear-gradient(135deg, #0284c7, #075985); border-radius: 16px; padding: 18px; color: #ffffff; margin-bottom: 14px; }
-        .hero-balance-box { background: rgba(15, 23, 42, 0.4); border-radius: 12px; padding: 12px; margin-top: 10px; }
-        
-        .modern-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
-        .modern-box { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; border-left: 4px solid #0284c7; }
-        .modern-box-val { font-size: 18px; font-weight: 900; color: #0284c7; margin-top: 4px; }
-        
-        .sheet-container { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; margin-bottom: 14px; }
-        .table-scroll { overflow-x: auto; max-height: 55vh; border: 1px solid #e2e8f0; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; min-width: 500px; }
-        th, td { border: 1px solid #e2e8f0; padding: 8px 10px; font-size: 12.5px; text-align: left; }
-        th { background: #f8fafc; font-weight: 700; color: #475569; position: sticky; top: 0; }
-        .num { text-align: right; }
-        
-        .add-row-btn { padding: 8px 14px; background: #0284c7; color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; }
-        .action-btn { background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; cursor: pointer; }
-        
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); z-index: 999999; align-items: center; justify-content: center; padding: 14px; }
-        .modal-box { background: #ffffff; border-radius: 14px; max-width: 380px; width: 100%; padding: 18px; text-align: center; }
-        .modal-input-field { width: 100%; border: 1px solid #cbd5e1; padding: 9px 12px; border-radius: 8px; margin: 6px 0 10px; font-size: 13px; outline: none; }
-        
-        .bottom-app-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 55px; background: #ffffff; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-        .bottom-nav-item { background: none; border: none; color: #64748b; font-size: 10px; font-weight: 700; cursor: pointer; }
-        .bottom-nav-item.active { color: #0284c7; }
-        
-        #auth-screen-container { position: fixed; inset: 0; background: radial-gradient(circle at top, #0369a1, #0f172a); display: flex; align-items: center; justify-content: center; z-index: 100000; padding: 16px; }
-        .auth-card { background: #ffffff; border-radius: 18px; width: 100%; max-width: 350px; padding: 24px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        
-        #fintrack-toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-100px); z-index: 9999999; padding: 10px 18px; border-radius: 10px; font-size: 12.5px; font-weight: 700; color: #ffffff; opacity: 0; transition: 0.3s; pointer-events: none; }
-        #fintrack-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        #fintrack-toast.success { background: #059669; }
-        #fintrack-toast.error { background: #dc2626; }
-    </style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    html, body { width: 100%; min-height: 100%; background: #f8fafc; color: #0f172a; }
+    
+    .desktop-app-wrapper { display: flex; width: 100%; min-height: 100vh; position: relative; }
+    .desktop-sidebar { 
+        display: none; 
+        width: clamp(230px, 16vw, 300px); 
+        background: #00305B; 
+        border-right: 1px solid #e2e8f0; 
+        flex-direction: column; 
+        flex-shrink: 0; 
+        position: sticky; 
+        top: 0; 
+        height: 100vh; 
+        z-index: 100; 
+        justify-content: space-between;
+    }
+    .sidebar-brand { padding: clamp(16px, 1.5vw, 22px); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #00305B; }
+    .brand-icon { width: clamp(34px, 2.5vw, 42px); height: clamp(34px, 2.5vw, 42px); background: linear-gradient(135deg, #0284c7, #0369a1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: clamp(15px, 1.2vw, 18px); }
+    .sidebar-menu-title { font-size: clamp(10px, 0.8vw, 12px); font-weight: 800; color:#ffffff; padding: 16px 16px 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .sidebar-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: clamp(10px, 1vw, 15px) 16px; background: none; border: none; font-size: clamp(13px, 0.95vw, 16px); font-weight: 700; color: #ffffff; cursor: pointer; text-align: left; transition: 0.15s; }
+    .sidebar-btn:hover { background: #f1f5f9; color: #0284c7; }
+    .sidebar-btn.active { background: #e0f2fe; color: #0284c7; border-right: 4px solid #0284c7; }
+
+    /* Sidebar Bottom User Container */
+.sidebar-bottom-user {
+    padding: 12px 14px;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* User Card Pill matching the image */
+.sidebar-user-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar-user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+}
+
+/* Blue Circle Initial Avatar */
+.sidebar-user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+/* Username Label */
+.sidebar-user-name {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #0f172a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Soft Red Square Logout Button */
+.sidebar-logout-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: #fff1f2;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e11d48;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+
+.sidebar-logout-btn:hover {
+    background: #ffe4e6;
+    color: #be123c;
+    transform: scale(1.04);
+}
+
+.sidebar-logout-btn svg {
+    width: 17px;
+    height: 17px;
+    stroke-width: 2.2;
+}
+  
+    .main-app-container { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 100vh; padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+    .app-header { background: #ffffff; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; height: 57px; z-index: 1000; border-bottom: 1px solid #e2e8f0; }
+    .tenant-selector-pill { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 4px 8px; border-radius: 8px; font-size: clamp(10px, 0.8vw, 12px); font-weight: 800; }
+    
+    /* Full-width responsive container eliminating whitespace */
+    .app-screen-section { 
+        width: 100%; 
+        max-width: 100%; 
+        margin: 0; 
+        padding: clamp(12px, 1.8vw, 28px); 
+    }
+    .hero-banner-card { background: linear-gradient(135deg, #0284c7, #075985); border-radius: 16px; padding: clamp(16px, 1.5vw, 26px); color: #ffffff; margin-bottom: clamp(12px, 1.5vw, 20px); }
+    .hero-balance-box { background: rgba(15, 23, 42, 0.4); border-radius: 12px; padding: clamp(12px, 1.2vw, 18px); margin-top: 10px; }
+    
+    .metrics-card-wrapper { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: clamp(14px, 1.5vw, 22px); margin-bottom: clamp(12px, 1.5vw, 20px); }
+    .metrics-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: clamp(10px, 1vw, 16px); }
+    .metrics-title { font-size: clamp(14.5px, 1.15vw, 19px); font-weight: 800; color: #0f172a; }
+    .metrics-action-link { font-size: clamp(12px, 0.9vw, 15px); font-weight: 800; color: #0284c7; cursor: pointer; text-decoration: none; border: none; background: none; }
+    
+    .modern-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(8px, 1.2vw, 16px); }
+    .modern-box { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: clamp(10px, 1.2vw, 18px); border-left: 5px solid #0284c7; min-width: 0; position: relative; }
+    .modern-box-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .modern-box-lbl { font-size: clamp(9.5px, 0.8vw, 12.5px); font-weight: 800; color: #475569; letter-spacing: 0.3px; text-transform: uppercase; }
+    .modern-box-icon { font-size: clamp(16px, 1.3vw, 22px); line-height: 1; }
+    .modern-box-val { font-size: clamp(18px, 1.8vw, 28px); font-weight: 900; margin-top: 4px; }
+    .modern-box-sub { font-size: clamp(9.5px, 0.8vw, 12px); color: #94a3b8; font-weight: 600; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .dash-split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(10px, 1.2vw, 18px); margin-bottom: clamp(12px, 1.5vw, 20px); }
+    .dash-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: clamp(14px, 1.4vw, 22px); min-height: clamp(140px, 12vw, 200px); display: flex; flex-direction: column; justify-content: space-between; }
+    .dash-card-title { font-size: clamp(13.5px, 1.1vw, 18px); font-weight: 800; color: #0f172a; margin-bottom: clamp(8px, 0.8vw, 14px); }
+    .view-more-link { font-size: clamp(11.5px, 0.85vw, 14px); font-weight: 700; color: #0284c7; cursor: pointer; text-align: right; margin-top: 8px; display: block; border: none; background: none; }
+    .view-more-link:hover { text-decoration: underline; }
+    
+    .activity-row { display: flex; justify-content: space-between; align-items: center; padding: clamp(6px, 0.6vw, 10px) 0; border-bottom: 1px solid #f1f5f9; font-size: clamp(11.5px, 0.9vw, 14.5px); gap: 8px; }
+    .activity-row:last-child { border-bottom: none; }
+    .activity-icon-in { background: #dcfce7; color: #16a34a; width: clamp(24px, 2vw, 32px); height: clamp(24px, 2vw, 32px); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: clamp(12px, 0.9vw, 14px); font-weight: 800; flex-shrink: 0; }
+    .activity-icon-out { background: #fee2e2; color: #dc2626; width: clamp(24px, 2vw, 32px); height: clamp(24px, 2vw, 32px); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: clamp(12px, 0.9vw, 14px); font-weight: 800; flex-shrink: 0; }
+
+    .sheet-container { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: clamp(14px, 1.4vw, 22px); margin-bottom: 14px; position: relative; }
+    
+    /* Sticky section head */
+    .sticky-section-head { 
+        position: sticky; 
+        top: 57px; 
+        background: #ffffff; 
+        z-index: 500; 
+        margin: calc(-1 * clamp(14px, 1.4vw, 22px)) calc(-1 * clamp(14px, 1.4vw, 22px)) 14px calc(-1 * clamp(14px, 1.4vw, 22px)); 
+        padding: clamp(14px, 1.4vw, 20px); 
+        border-bottom: 1px solid #e2e8f0; 
+        border-top-left-radius: 12px; 
+        border-top-right-radius: 12px; 
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); 
+    }
+    
+    .search-row-container { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+    .filter-search-input { flex: 1; min-width: 140px; border: 1px solid #cbd5e1; border-radius: 8px; padding: clamp(8px, 0.7vw, 12px) 12px; font-size: clamp(12px, 0.85vw, 14.5px); outline: none; background: #f8fafc; }
+    .filter-search-input:focus { border-color: #0284c7; background: #ffffff; }
+    .filter-date-input { border: 1px solid #cbd5e1; border-radius: 8px; padding: clamp(8px, 0.7vw, 12px) 10px; font-size: clamp(12px, 0.85vw, 14px); outline: none; background: #f8fafc; }
+    .filter-date-input:focus { border-color: #0284c7; background: #ffffff; }
+
+    .table-scroll { overflow-x: auto; max-height: 65vh; border: 1px solid #e2e8f0; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    th, td { border: 1px solid #e2e8f0; padding: clamp(8px, 0.8vw, 14px) clamp(10px, 0.9vw, 16px); font-size: clamp(11.5px, 0.85vw, 14.5px); text-align: left; }
+    th { background: #f8fafc; font-weight: 700; color: #475569; position: sticky; top: 0; z-index: 10; }
+    .num { text-align: right; }
+    
+    .btn-action-group { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; white-space: nowrap; }
+    .add-row-btn { padding: clamp(7px, 0.6vw, 10px) clamp(12px, 0.9vw, 18px); background: #0284c7; color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: clamp(11.5px, 0.85vw, 14px); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-csv { padding: clamp(7px, 0.6vw, 10px) clamp(10px, 0.8vw, 15px); background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 700; font-size: clamp(11.5px, 0.85vw, 14px); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-csv:hover { background: #e2e8f0; }
+
+    .action-btn-in { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: clamp(4px, 0.4vw, 7px) clamp(6px, 0.6vw, 10px); border-radius: 6px; font-weight: 700; font-size: clamp(10.5px, 0.75vw, 13px); cursor: pointer; }
+    .action-btn-out { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: clamp(4px, 0.4vw, 7px) clamp(6px, 0.6vw, 10px); border-radius: 6px; font-weight: 700; font-size: clamp(10.5px, 0.75vw, 13px); cursor: pointer; }
+    .action-btn-edit { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: clamp(4px, 0.4vw, 7px) clamp(6px, 0.6vw, 10px); border-radius: 6px; font-weight: 700; font-size: clamp(10.5px, 0.75vw, 13px); cursor: pointer; }
+    .action-btn-del { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: clamp(4px, 0.4vw, 7px) clamp(6px, 0.6vw, 10px); border-radius: 6px; font-weight: 700; font-size: clamp(10.5px, 0.75vw, 13px); cursor: pointer; }
+    
+    .report-nav-pill-group { display: flex; gap: 8px; margin-bottom: 14px; }
+    .report-pill-btn { padding: clamp(6px, 0.5vw, 10px) clamp(16px, 1.2vw, 24px); border-radius: 20px; font-size: clamp(12px, 0.85vw, 14.5px); font-weight: 700; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; cursor: pointer; }
+    .report-pill-btn.active { background: #0284c7; color: #ffffff; border-color: #0284c7; }
+    
+    .report-card-menu { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: clamp(14px, 1.3vw, 20px); }
+    .report-card-item { display: flex; align-items: center; justify-content: space-between; padding: clamp(11px, 1vw, 16px); border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: 0.15s; }
+    .report-card-item:hover { border-color: #0284c7; background: #f8fafc; }
+    .report-icon-box { width: clamp(36px, 2.5vw, 46px); height: clamp(36px, 2.5vw, 46px); border-radius: 10px; background: #e0f2fe; display: flex; align-items: center; justify-content: center; font-size: clamp(18px, 1.4vw, 24px); }
+
+    .stat-pill-row { display: flex; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: clamp(8px, 0.7vw, 12px); margin-bottom: 12px; font-size: clamp(11.5px, 0.85vw, 14px); font-weight: 700; flex-wrap: wrap; }
+    .supplier-badge { background: #e0f2fe; color: #0369a1; padding: 2px 7px; border-radius: 12px; font-size: clamp(10.5px, 0.75vw, 13px); font-weight: 700; display: inline-block; }
+    .stock-indicator-pill { background: #eff6ff; color: #0284c7; padding: 5px 10px; border-radius: 8px; font-size: clamp(11.5px, 0.8vw, 13.5px); font-weight: 800; border: 1px solid #bfdbfe; margin-bottom: 8px; text-align: left; display: inline-block; width: 100%; }
+    
+    .drill-clickable-row { cursor: pointer; transition: background 0.1s; }
+    .drill-clickable-row:hover { background-color: #f1f5f9; }
+
+    .setting-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: clamp(14px, 1.4vw, 22px); margin-bottom: 12px; }
+    .btn-outline-action { width: 100%; text-align: left; padding: clamp(11px, 0.9vw, 15px); background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-weight: 700; font-size: clamp(12.5px, 0.9vw, 15px); cursor: pointer; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); z-index: 999999; align-items: center; justify-content: center; padding: 14px; }
+    .modal-box { background: #ffffff; border-radius: 14px; max-width: 420px; width: 100%; padding: clamp(18px, 1.8vw, 26px); }
+    .modal-input-field { width: 100%; border: 1px solid #cbd5e1; padding: clamp(8px, 0.7vw, 12px); border-radius: 8px; margin: 6px 0 10px; font-size: clamp(12.5px, 0.85vw, 14.5px); outline: none; }
+    
+    .bottom-app-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 55px; background: #ffffff; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+    .bottom-nav-item { background: none; border: none; color: #64748b; font-size: 10px; font-weight: 700; cursor: pointer; }
+    .bottom-nav-item.active { color: #0284c7; }
+    
+    #auth-screen-container { position: fixed; inset: 0; background: radial-gradient(circle at top, #0369a1, #0f172a); display: flex; align-items: center; justify-content: center; z-index: 100000; padding: 16px; }
+    .auth-card { background: #ffffff; border-radius: 18px; width: 100%; max-width: 350px; padding: 24px; text-align: center; }
+    #fintrack-toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-100px); z-index: 9999999; padding: 10px 18px; border-radius: 10px; font-size: 12.5px; font-weight: 700; color: #ffffff; opacity: 0; transition: 0.3s; pointer-events: none; }
+    #fintrack-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    #fintrack-toast.success { background: #059669; }
+    #fintrack-toast.error { background: #dc2626; }
+
+    .mobile-cards-container { display: none; flex-direction: column; gap: 10px; }
+    .mobile-item-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
+    .mobile-card-row-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .mobile-card-title { font-size: 13.5px; font-weight: 800; color: #0f172a; }
+    .mobile-card-sub { font-size: 11px; color: #64748b; margin-bottom: 8px; }
+    .mobile-card-metric-row { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 8px; padding: 6px 10px; margin-bottom: 8px; font-size: 12px; }
+    .mobile-card-actions { display: flex; gap: 6px; justify-content: flex-end; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 8px; }
+
+    /* Keeps intact exact mobile layout below 768px */
+    @media (max-width: 768px) {
+        .desktop-table-view { display: none !important; }
+        .mobile-cards-container { display: flex !important; }
+    }
+
+    @media (min-width: 900px) {
+        .desktop-sidebar { display: flex; }
+        .bottom-app-bar { display: none; }
+        .main-app-container { padding-bottom: 0; }
+        .app-header { display: none; }
+        .sticky-section-head { top: 0 !important; }
+    }
+
+    @media print {
+        body * { visibility: hidden !important; }
+        #reportDynamicView, #reportDynamicView * { visibility: visible !important; }
+        #reportDynamicView { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+        #reportDynamicView button, #reportDynamicView select, #reportDynamicView .action-btn-del, #reportDynamicView .add-row-btn, #reportDynamicView .action-btn-in, #reportDynamicView div[style*="💡"] { display: none !important; }
+        .table-scroll { overflow: visible !important; max-height: none !important; border: none !important; }
+        table { width: 100% !important; border-collapse: collapse !important; }
+        th, td { border: 1px solid #94a3b8 !important; padding: 6px 10px !important; color: #000 !important; }
+        th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+</style>
 </head>
 <body>
 
 <div id="fintrack-toast">Notification</div>
 
-<!-- Auth Modal Screen -->
+<input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCSVImport(event)">
+<input type="file" id="jsonFileInput" accept=".json" style="display:none;" onchange="executeRestore(event)">
+
+<!-- Authentication Screen -->
 <div id="auth-screen-container">
     <div class="auth-card">
-        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">Finsphere Cloud</h2>
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">StockBook</h2>
         <p style="font-size: 12px; color: #64748b; margin-bottom: 16px;">Multi-Tenant Core Access</p>
-        <input type="text" id="loginUsername" class="modal-input-field" placeholder="Username (e.g. user_a or superadmin)">
+        <input type="text" id="loginUsername" class="modal-input-field" placeholder="Username">
         <input type="password" id="loginPassword" class="modal-input-field" placeholder="Password">
-        <button class="add-row-btn" style="width: 100%; padding: 10px; margin-top: 8px;" onclick="executeLogin()">Access Workspace</button>
-        <div style="margin-top: 14px;">
-            <button type="button" onclick="openRegisterModal()" style="background:none; border:none; color:#0284c7; font-size:12px; font-weight:700; cursor:pointer;">
-                Create New Account
-            </button>
-        </div>
+        <button class="add-row-btn" style="width: 100%; padding: 10px; justify-content:center; margin-top: 8px;" onclick="executeLogin()">Access Workspace</button>
+        <button type="button" onclick="openRegisterModal()" style="margin-top:14px; background:none; border:none; color:#0284c7; font-size:12px; font-weight:700; cursor:pointer;">
+            Create New Account
+        </button>
     </div>
 </div>
 
 <!-- Registration Modal -->
 <div class="modal-overlay" id="registerModal">
     <div class="modal-box">
-        <h4 style="margin-bottom:6px;">Create Account</h4>
-        <p style="font-size:11px; color:#64748b; margin-bottom:12px;">Create a new StockTrack workspace</p>
-
+        <h4 style="margin-bottom:6px;">Create Workspace Account</h4>
         <input type="text" id="registerUsername" class="modal-input-field" placeholder="Username">
         <input type="password" id="registerPassword" class="modal-input-field" placeholder="Password">
         <input type="password" id="registerConfirmPassword" class="modal-input-field" placeholder="Confirm Password">
-        <input type="text" id="registerCompanyId" class="modal-input-field" placeholder="Company ID (e.g. COMPANY001)">
+        <input type="text" id="registerCompanyId" class="modal-input-field" placeholder="Company ID (e.g. COMP01)">
         <input type="text" id="registerCompanyName" class="modal-input-field" placeholder="Company Name">
-
         <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="action-btn" style="flex:1;" onclick="closeModal('registerModal')">Cancel</button>
-            <button class="add-row-btn" style="flex:1;" onclick="executeRegister()">Register</button>
+            <button class="action-btn-del" style="flex:1;" onclick="closeModal('registerModal')">Cancel</button>
+            <button class="add-row-btn" style="flex:1; justify-content:center;" onclick="executeRegister()">Register</button>
         </div>
     </div>
 </div>
 
-<!-- Main Core Application -->
-<div id="main-app-content" style="display:none;">
-    <header class="app-header">
-        <div class="app-header-left">
-            <div class="brand-icon-box">F</div>
-            <div>
-                <div style="font-size: 14px; font-weight: 900;" id="currentBrand">StockTrack</div>
-                <div id="tenantPillContainer"></div>
-            </div>
+<!-- Confirmation Yes/No Modal -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-box" style="text-align:center;">
+        <h4 style="font-size:15px; font-weight:800; margin-bottom:8px;">Confirm Deletion</h4>
+        <p id="confirmModalMsg" style="font-size:12.5px; color:#64748b; margin-bottom:16px;">Are you sure you want to delete this record?</p>
+        <div style="display:flex; gap:8px;">
+            <button class="action-btn-del" style="flex:1; padding:8px;" onclick="closeModal('confirmModal')">No, Cancel</button>
+            <button class="action-btn-out" style="flex:1; padding:8px;" id="confirmModalActionBtn">Yes, Delete</button>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-            <select id="superAdminCompanySelect" style="display:none; padding:4px 6px; font-size:11px; border-radius:6px; border:1px solid #cbd5e1;" onchange="switchTenantScope(this.value)">
-            </select>
-            <button class="action-btn" onclick="executeLogout()">Logout</button>
-        </div>
-    </header>
+    </div>
+</div>
 
-    <div id="dashboard-section" class="app-screen-section">
-        <div class="hero-banner-card">
-            <h3 id="heroGreeting">Workspace</h3>
-            <div class="hero-balance-box">
-                <div style="font-size: 11px; opacity: 0.85;">Current System Units</div>
-                <div style="font-size: 24px; font-weight: 900;" id="heroTotalUnits">0 Units</div>
+<!-- Main Application Layout -->
+<div id="main-app-content" class="desktop-app-wrapper" style="display:none;">
+    <aside class="desktop-sidebar">
+        <div>
+            <div class="sidebar-brand">
+                <div class="brand-icon">S</div>
+                <div>
+                    <div style="font-size: 20px; font-weight: 900; color: #ffffff;" id="sideBrandTitle">StockBook</div>
+                    <div style="font-size: 12px; color: #FFFFE0;" id="sideBrandSubtitle">Enterprise Ledger</div>
+                </div>
+            </div>
+            <div class="sidebar-menu-title">Menu</div>
+            <button class="sidebar-btn active" id="sbtn-dashboard" onclick="navigate('dashboard')">🏠 Dashboard</button>
+            <button class="sidebar-btn" id="sbtn-transaction" onclick="navigate('transaction')">📄 Transaction</button>
+            <button class="sidebar-btn" id="sbtn-inventory" onclick="navigate('inventory')">📦 Inventory</button>
+            <button class="sidebar-btn" id="sbtn-reports" onclick="navigate('reports')">📈 Reports</button>
+            <button class="sidebar-btn" id="sbtn-settings" onclick="navigate('settings')">⚙️ Settings</button>
+        </div>
+
+        <!-- Sidebar User & Logout pinned to bottom -->
+<div class="sidebar-bottom-user">
+    <select id="superAdminSidebarSelect" style="display:none; width:100%; padding:5px 6px; font-size:11px; border-radius:6px; border:1px solid #cbd5e1;" onchange="switchTenantScope(this.value)"></select>
+    
+    <div class="sidebar-user-card">
+        <div class="sidebar-user-profile">
+            <div class="sidebar-user-avatar" id="sidebarUserAvatar">U</div>
+            <span class="sidebar-user-name" id="sidebarUsernameDisplay">User</span>
+        </div>
+        <button class="sidebar-logout-btn" title="Logout" onclick="executeLogout()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l3 3m0 0l-3 3m3-3H9" />
+            </svg>
+        </button>
+    </div>
+</div>
+    </aside>
+
+    <div class="main-app-container">
+        <!-- Mobile Header (Hidden on Desktop) -->
+        <header class="app-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:14px; font-weight:800;" id="currentBrand">StockBook</span>
+                <span id="tenantPillContainer"></span>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <select id="superAdminCompanySelect" style="display:none; padding:4px 6px; font-size:11px; border-radius:6px; border:1px solid #cbd5e1;" onchange="switchTenantScope(this.value)"></select>
+                <span style="font-size:12px; font-weight:700; color:#334155;" id="headerUsernameDisplay"></span>
+                <button class="action-btn-out" onclick="executeLogout()">Logout</button>
+            </div>
+        </header>
+
+        <!-- DASHBOARD SECTION -->
+        <div id="dashboard-section" class="app-screen-section">
+            <div class="hero-banner-card">
+                
+                <div class="hero-balance-box">
+                    <div style="font-size: 11px; opacity: 0.85;">Total System Units Available</div>
+                    <div style="font-size: 26px; font-weight: 900;" id="heroTotalUnits">0 Units</div>
+                </div>
+            </div>
+
+            <!-- Stock Summary Metrics -->
+            <div class="metrics-card-wrapper">
+                <div class="metrics-header-row">
+                    <span class="metrics-title">Stock Summary Metrics</span>
+                    <button class="metrics-action-link" onclick="navigate('inventory')">View Inventory</button>
+                </div>
+                <div class="modern-grid">
+                    <div class="modern-box" style="border-left-color: #0284c7;">
+                        <div class="modern-box-top">
+                            <span class="modern-box-lbl">PRODUCTS</span>
+                            <span class="modern-box-icon">📦</span>
+                        </div>
+                        <div class="modern-box-val" style="color: #0284c7;" id="dashProdCount">0</div>
+                        <div class="modern-box-sub">Catalog Items</div>
+                    </div>
+                    <div class="modern-box" style="border-left-color: #10b981;">
+                        <div class="modern-box-top">
+                            <span class="modern-box-lbl">PURCHASED</span>
+                            <span class="modern-box-icon">📈</span>
+                        </div>
+                        <div class="modern-box-val" style="color: #10b981;" id="dashInCount">0</div>
+                        <div class="modern-box-sub">Total Units In</div>
+                    </div>
+                    <div class="modern-box" style="border-left-color: #ef4444;">
+                        <div class="modern-box-top">
+                            <span class="modern-box-lbl">SOLD</span>
+                            <span class="modern-box-icon">📉</span>
+                        </div>
+                        <div class="modern-box-val" style="color: #ef4444;" id="dashOutCount">0</div>
+                        <div class="modern-box-sub">Total Units Out</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Split -->
+            <div class="dash-split-grid">
+                <div class="dash-card">
+                    <div>
+                        <div class="dash-card-title">Low Stock Alert</div>
+                        <div id="dashLowStockContent" style="font-size: 11.5px; color: #64748b;">All items sufficiently stocked</div>
+                    </div>
+                    <div id="dashLowStockFooter"></div>
+                </div>
+                <div class="dash-card">
+                    <div>
+                        <div class="dash-card-title">Recent Activity</div>
+                        <div id="dashRecentActivityContent" style="font-size: 11.5px; color: #64748b;">No recent transactions recorded</div>
+                    </div>
+                    <div id="dashRecentActivityFooter"></div>
+                </div>
             </div>
         </div>
 
-        <div class="modern-grid">
-            <div class="modern-box">
-                <div style="font-size: 10px; font-weight: 800; color: #64748b;">PRODUCTS</div>
-                <div class="modern-box-val" id="dashProdCount">0</div>
+        <!-- PRODUCT CATALOG & STOCK -->
+        <div id="inventory-section" class="app-screen-section" style="display:none;">
+            <div class="sheet-container">
+                <div class="sticky-section-head">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <h4 style="font-size:16px; font-weight:800;">Product Catalog & Stock</h4>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button class="btn-csv" onclick="document.getElementById('csvFileInput').click()">↑ Import CSV</button>
+                            <button class="btn-csv" onclick="exportCatalogCSV()">↓ Export CSV</button>
+                            <button class="add-row-btn" onclick="openProductModal()">+ Add Product</button>
+                        </div>
+                    </div>
+                    <div class="search-row-container">
+                        <input type="text" id="catalogSearchQuery" class="filter-search-input" placeholder="🔍 Search product by name or supplier..." oninput="renderAllViews()">
+                    </div>
+                </div>
+
+                <!-- Desktop Table View -->
+                <div class="table-scroll desktop-table-view">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Supplier</th>
+                                <th class="num">Available Stock</th>
+                                <th>Threshold</th>
+                                <th style="width: 170px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Card Container -->
+                <div class="mobile-cards-container" id="productMobileCardsBody"></div>
             </div>
-            <div class="modern-box" style="border-left-color: #10b981;">
-                <div style="font-size: 10px; font-weight: 800; color: #64748b;">TOTAL IN</div>
-                <div class="modern-box-val" style="color: #10b981;" id="dashInCount">0</div>
+        </div>
+
+        <!-- TRANSACTION SECTION -->
+        <div id="transaction-section" class="app-screen-section" style="display:none;">
+            <div class="sheet-container">
+                <div class="sticky-section-head">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <h4 style="font-size:16px; font-weight:800;">Transaction Log</h4>
+                        <button class="add-row-btn" onclick="openTxModal()">+ Add Transaction</button>
+                    </div>
+                    <div class="search-row-container">
+                        <input type="text" id="txSearchQuery" class="filter-search-input" placeholder="🔍 Search transaction or product..." oninput="renderAllViews()">
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            <input type="date" id="txSearchDate" class="filter-date-input" title="Filter by date" onchange="renderAllViews()">
+                            <button class="btn-csv" style="padding:7px 10px;" title="Clear date filter" onclick="document.getElementById('txSearchDate').value=''; renderAllViews();">✕</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop Table View -->
+                <div class="table-scroll desktop-table-view">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>Type</th>
+                                <th class="num">Qty</th>
+                                <th>Description</th>
+                                <th style="width: 110px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="txTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Card Container -->
+                <div class="mobile-cards-container" id="txMobileCardsBody"></div>
             </div>
-            <div class="modern-box" style="border-left-color: #ef4444;">
-                <div style="font-size: 10px; font-weight: 800; color: #64748b;">TOTAL OUT</div>
-                <div class="modern-box-val" style="color: #ef4444;" id="dashOutCount">0</div>
+        </div>
+
+        <!-- REPORTS SECTION -->
+        <div id="reports-section" class="app-screen-section" style="display:none;">
+            <div class="sheet-container">
+                <div id="reportsMainHeaderContainer">
+                    <h4 style="font-size:16px; font-weight:800; margin-bottom:4px;">📊 View Reports</h4>
+                    <p style="font-size:12px; color:#64748b; margin-bottom:14px;">Pick a report to view, filter, and export</p>
+                    
+                    <div class="report-nav-pill-group">
+                        <button class="report-pill-btn active" id="pill-day" onclick="selectReportTab('day')">Day-wise</button>
+                        <button class="report-pill-btn" id="pill-inv" onclick="selectReportTab('inv')">Inventory</button>
+                        <button class="report-pill-btn" id="pill-sup" onclick="selectReportTab('sup')">Supplier</button>
+                    </div>
+                </div>
+
+                <div id="reportDynamicView"></div>
+            </div>
+        </div>
+
+        <!-- SETTINGS SECTION -->
+        <div id="settings-section" class="app-screen-section" style="display:none;">
+            <div class="setting-card">
+                <h4 style="font-size:15px; font-weight:800; margin-bottom:6px;">Organization</h4>
+                <p style="font-size:11.5px; color:#64748b; margin-bottom:10px;">Shown in the app and preserved permanently across re-logins.</p>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="setCompanyName" class="modal-input-field" style="margin:0;" placeholder="e.g. Acme Trading Co.">
+                    <button class="add-row-btn" onclick="saveWorkspaceOrg()">Save</button>
+                </div>
+            </div>
+
+            <div class="setting-card">
+                <h4 style="font-size:15px; font-weight:800; margin-bottom:10px;">Settings & Backup</h4>
+                <button class="btn-outline-action" onclick="exportDataJSON()">📥 Backup JSON</button>
+                <button class="btn-outline-action" onclick="document.getElementById('jsonFileInput').click()">📤 Restore from Backup</button>
+                <button class="btn-outline-action" onclick="showToast('Password change ready', 'success')">🔒 Change Password</button>
             </div>
         </div>
     </div>
 
-    <div id="inventory-section" class="app-screen-section" style="display:none;">
-        <div class="sheet-container">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <h4 style="font-size:14px; font-weight:800;">Catalog & Stock</h4>
-                <button class="add-row-btn" onclick="openProductModal()">+ Add Product</button>
-            </div>
-            <div class="table-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Product Name</th>
-                            <th>Supplier</th>
-                            <th class="num">Available Stock</th>
-                            <th>Threshold</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div id="transaction-section" class="app-screen-section" style="display:none;">
-        <div class="sheet-container">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <h4 style="font-size:14px; font-weight:800;">Transaction Log</h4>
-                <button class="add-row-btn" onclick="openTxModal()">+ Add Transaction</button>
-            </div>
-            <div class="table-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Product</th>
-                            <th>Type</th>
-                            <th class="num">Qty</th>
-                            <th>Description</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="txTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
+    <!-- Mobile Nav Bar -->
     <nav class="bottom-app-bar">
-        <button class="bottom-nav-item active" id="btn-nav-dashboard" onclick="navigate('dashboard')">Dashboard</button>
-        <button class="bottom-nav-item" id="btn-nav-inventory" onclick="navigate('inventory')">Inventory</button>
-        <button class="bottom-nav-item" id="btn-nav-transaction" onclick="navigate('transaction')">Transactions</button>
+        <button class="bottom-nav-item active" id="bnav-dashboard" onclick="navigate('dashboard')">Home</button>
+        <button class="bottom-nav-item" id="bnav-transaction" onclick="navigate('transaction')">Tx Log</button>
+        <button class="bottom-nav-item" id="bnav-inventory" onclick="navigate('inventory')">Catalog</button>
+        <button class="bottom-nav-item" id="bnav-reports" onclick="navigate('reports')">Reports</button>
+        <button class="bottom-nav-item" id="bnav-settings" onclick="navigate('settings')">Settings</button>
     </nav>
 </div>
 
-<!-- Add Product Modal -->
+<!-- Add/Edit Product Modal -->
 <div class="modal-overlay" id="productModal">
     <div class="modal-box">
-        <h4 style="margin-bottom:8px;">Save Product</h4>
+        <h4 id="mProdTitle" style="margin-bottom:8px;">Save Product</h4>
+        <input type="hidden" id="mProdEditOriginalName">
         <input type="text" id="mProdName" class="modal-input-field" placeholder="Product Name">
         <input type="text" id="mProdSupplier" class="modal-input-field" placeholder="Supplier">
         <input type="number" id="mProdQty" class="modal-input-field" placeholder="Opening Stock">
         <input type="number" id="mProdThreshold" class="modal-input-field" placeholder="Low Stock Threshold" value="2">
         <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="action-btn" style="flex:1;" onclick="closeModal('productModal')">Cancel</button>
-            <button class="add-row-btn" style="flex:1;" onclick="submitProduct()">Save</button>
+            <button class="action-btn-del" style="flex:1;" onclick="closeModal('productModal')">Cancel</button>
+            <button class="add-row-btn" style="flex:1; justify-content:center;" onclick="submitProduct()">Save Product</button>
         </div>
     </div>
 </div>
 
-<!-- Add Transaction Modal -->
+<!-- Add/Edit Transaction Modal -->
 <div class="modal-overlay" id="txModal">
     <div class="modal-box">
-        <h4 style="margin-bottom:8px;">Record Transaction</h4>
+        <h4 id="mTxTitle" style="margin-bottom:8px;">Record Transaction</h4>
+        <input type="hidden" id="mTxEditId">
         <input type="date" id="mTxDate" class="modal-input-field">
-        <select id="mTxProduct" class="modal-input-field"></select>
+        
+        <input type="text" list="productListDatalist" id="mTxProductSearch" class="modal-input-field" placeholder="Search / Select Product..." oninput="updateModalStockIndicator(this.value)">
+        <datalist id="productListDatalist"></datalist>
+
+        <div id="mTxStockPill" class="stock-indicator-pill" style="display:none;"></div>
+
         <select id="mTxType" class="modal-input-field">
             <option value="purchase">Purchase (Stock In)</option>
             <option value="sales">Sales (Stock Out)</option>
@@ -212,8 +578,8 @@
         <input type="number" id="mTxQty" class="modal-input-field" placeholder="Quantity">
         <input type="text" id="mTxDesc" class="modal-input-field" placeholder="Notes / Reference">
         <div style="display:flex; gap:8px; margin-top:8px;">
-            <button class="action-btn" style="flex:1;" onclick="closeModal('txModal')">Cancel</button>
-            <button class="add-row-btn" style="flex:1;" onclick="submitTransaction()">Save</button>
+            <button class="action-btn-del" style="flex:1;" onclick="closeModal('txModal')">Cancel</button>
+            <button class="add-row-btn" style="flex:1; justify-content:center;" onclick="submitTransaction()">Save Entry</button>
         </div>
     </div>
 </div>
@@ -226,8 +592,13 @@
     let activeCompanyId = localStorage.getItem('finsphere_active_company') || null;
     let companiesCache = JSON.parse(localStorage.getItem('finsphere_companies') || '[]');
     
+    let activeReportTab = 'day';
+    let currentSupplierFilter = 'all';
+    let currentLedgerProductFilter = 'all';
+
     let products = [];
     let transactions = [];
+    let stockMap = new Map();
 
     function escapeHtml(str) {
         return String(str || '').replace(/[&<>"']/g, m => ({
@@ -235,11 +606,26 @@
         }[m]));
     }
 
+    function cleanDate(str) {
+        if (!str) return '-';
+        return String(str).split('T')[0];
+    }
+
     function showToast(msg, type = 'success') {
         const el = document.getElementById('fintrack-toast');
         el.className = type === 'success' ? 'success show' : 'error show';
         el.innerText = msg;
         setTimeout(() => el.className = '', 3000);
+    }
+
+    function triggerConfirmation(msg, onConfirmCallback) {
+        document.getElementById('confirmModalMsg').innerText = msg;
+        const btn = document.getElementById('confirmModalActionBtn');
+        btn.onclick = () => {
+            closeModal('confirmModal');
+            onConfirmCallback();
+        };
+        document.getElementById('confirmModal').style.display = 'flex';
     }
 
     async function callBackend(action, payload = {}) {
@@ -253,8 +639,7 @@
             });
             return await res.json();
         } catch (e) {
-            console.error("Fetch error:", e);
-            showToast("Connection failed", "error");
+            console.error("Fetch failure:", e);
             return { success: false };
         }
     }
@@ -283,23 +668,36 @@
     }
 
     function executeLogout() {
-        localStorage.clear();
+        // Keep permanent org settings saved, clear credentials
+        localStorage.removeItem('finsphere_token');
+        localStorage.removeItem('finsphere_user');
+        localStorage.removeItem('finsphere_active_company');
+        localStorage.removeItem('finsphere_companies');
         location.reload();
     }
 
     function bootstrapApp() {
         document.getElementById('auth-screen-container').style.display = 'none';
-        document.getElementById('main-app-content').style.display = 'block';
+        document.getElementById('main-app-content').style.display = 'flex';
         
+        const displayUser = currentUser ? currentUser.username : 'User';
+        document.getElementById('headerUsernameDisplay').innerText = displayUser;
+        document.getElementById('sidebarUsernameDisplay').innerText = displayUser;
+
         if (currentUser && currentUser.role === 'superadmin') {
-            const sel = document.getElementById('superAdminCompanySelect');
-            sel.style.display = 'inline-block';
-            sel.innerHTML = companiesCache.map(c => 
+            const selHeader = document.getElementById('superAdminCompanySelect');
+            const selSidebar = document.getElementById('superAdminSidebarSelect');
+            const options = companiesCache.map(c => 
                 `<option value="${escapeHtml(c.company_id)}" ${c.company_id === activeCompanyId ? 'selected' : ''}>${escapeHtml(c.company_name)} (${escapeHtml(c.company_id)})</option>`
             ).join('');
-            if (!activeCompanyId && companiesCache.length > 0) {
-                activeCompanyId = companiesCache[0].company_id;
-            }
+            
+            selHeader.style.display = 'inline-block';
+            selHeader.innerHTML = options;
+
+            selSidebar.style.display = 'block';
+            selSidebar.innerHTML = options;
+
+            if (!activeCompanyId && companiesCache.length > 0) activeCompanyId = companiesCache[0].company_id;
         }
 
         renderHeaderPill();
@@ -307,9 +705,12 @@
     }
 
     function renderHeaderPill() {
+        const savedOrg = localStorage.getItem('finsphere_org_name_' + activeCompanyId) || activeCompanyId;
         document.getElementById('tenantPillContainer').innerHTML = 
-            `<span class="tenant-selector-pill">🏢 Tenant: ${escapeHtml(activeCompanyId)}</span>`;
-        document.getElementById('heroGreeting').innerText = `Workspace: ${activeCompanyId}`;
+            `<span class="tenant-selector-pill">🏢 ${escapeHtml(activeCompanyId)}</span>`;
+        document.getElementById('currentBrand').innerText = savedOrg;
+        document.getElementById('sideBrandTitle').innerText = savedOrg;
+        document.getElementById('setCompanyName').value = savedOrg;
     }
 
     async function switchTenantScope(compId) {
@@ -317,7 +718,116 @@
         localStorage.setItem('finsphere_active_company', activeCompanyId);
         renderHeaderPill();
         await loadCompanyData();
-        showToast(`Switched to tenant ${compId}`);
+        showToast(`Workspace scoped to ${compId}`);
+    }
+
+    function recomputeStockMetrics() {
+        stockMap.clear();
+        for (let i = 0; i < products.length; i++) {
+            stockMap.set(products[i].name.toLowerCase(), Number(products[i].qty) || 0);
+        }
+
+        let inUnits = 0, outUnits = 0;
+        for (let j = 0; j < transactions.length; j++) {
+            const t = transactions[j];
+            const key = (t.product || '').toLowerCase();
+            const qty = Number(t.qty) || 0;
+            const cur = stockMap.get(key) || 0;
+            if (t.type === 'purchase') {
+                inUnits += qty;
+                stockMap.set(key, cur + qty);
+            } else if (t.type === 'sales') {
+                outUnits += qty;
+                stockMap.set(key, cur - qty);
+            }
+        }
+
+        let totalUnits = 0;
+        stockMap.forEach(q => totalUnits += q);
+
+        document.getElementById('heroTotalUnits').innerText = `${totalUnits} Units`;
+        document.getElementById('dashProdCount').innerText = products.length;
+        document.getElementById('dashInCount').innerText = inUnits;
+        document.getElementById('dashOutCount').innerText = outUnits;
+
+        renderDashboardWidgets();
+    }
+
+    function renderDashboardWidgets() {
+        const lowStockItems = [];
+        for (let i = 0; i < products.length; i++) {
+            const p = products[i];
+            const stock = stockMap.get(p.name.toLowerCase()) || 0;
+            if (stock <= (Number(p.threshold) || 0)) {
+                lowStockItems.push(p);
+            }
+        }
+
+        const lowStockContainer = document.getElementById('dashLowStockContent');
+        const lowStockFooter = document.getElementById('dashLowStockFooter');
+
+        if (lowStockItems.length === 0) {
+            lowStockContainer.innerHTML = `<span style="color:#64748b;">All items sufficiently stocked</span>`;
+            lowStockFooter.innerHTML = '';
+        } else {
+            const displayItems = lowStockItems.slice(0, 7);
+            lowStockContainer.innerHTML = displayItems.map(p => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid #f8fafc;">
+                    <span style="font-weight:700; color:#b91c1c;">⚠️ ${escapeHtml(p.name)}</span>
+                    <span style="font-weight:800; color:#dc2626;">${stockMap.get(p.name.toLowerCase()) || 0} left</span>
+                </div>
+            `).join('');
+
+            if (lowStockItems.length > 7) {
+                lowStockFooter.innerHTML = `
+                    <button class="view-more-link" onclick="openReportDirectly('inv', 'low')">
+                        View more (${lowStockItems.length - 7} more) →
+                    </button>
+                `;
+            } else {
+                lowStockFooter.innerHTML = '';
+            }
+        }
+
+        const recentContainer = document.getElementById('dashRecentActivityContent');
+        const recentFooter = document.getElementById('dashRecentActivityFooter');
+
+        if (transactions.length === 0) {
+            recentContainer.innerHTML = `<span style="color:#64748b;">No recent transactions recorded</span>`;
+            recentFooter.innerHTML = '';
+        } else {
+            const len = transactions.length;
+            const displayRecent = [];
+            for (let i = len - 1; i >= Math.max(0, len - 3); i--) {
+                displayRecent.push(transactions[i]);
+            }
+
+            recentContainer.innerHTML = displayRecent.map(t => {
+                const isPurchase = t.type === 'purchase';
+                return `
+                    <div class="activity-row">
+                        <div style="display:flex; align-items:center; gap:8px; min-width: 0;">
+                            <div class="${isPurchase ? 'activity-icon-in' : 'activity-icon-out'}">${isPurchase ? '↓' : '↑'}</div>
+                            <div style="min-width: 0;">
+                                <div style="font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(t.product)}</div>
+                                <div style="font-size:10px; color:#94a3b8;">(${escapeHtml(t.type)}) · ${cleanDate(t.date)}</div>
+                            </div>
+                        </div>
+                        <div style="font-weight:800; color:${isPurchase ? '#16a34a' : '#dc2626'}; white-space:nowrap; flex-shrink:0;">${t.qty} units</div>
+                    </div>
+                `;
+            }).join('');
+
+            if (transactions.length > 3) {
+                recentFooter.innerHTML = `
+                    <button class="view-more-link" onclick="navigate('transaction')">
+                        View all (${transactions.length}) →
+                    </button>
+                `;
+            } else {
+                recentFooter.innerHTML = '';
+            }
+        }
     }
 
     async function loadCompanyData() {
@@ -329,68 +839,158 @@
         }
     }
 
-    function getProductCurrentStock(productName) {
-        const p = products.find(i => (i.name || '').toLowerCase() === (productName || '').toLowerCase());
-        let total = p ? (Number(p.qty) || 0) : 0;
-        transactions.forEach(t => {
-            if ((t.product || '').toLowerCase() === (productName || '').toLowerCase()) {
-                const qty = Number(t.qty) || 0;
-                if (t.type === 'purchase') total += qty;
-                if (t.type === 'sales') total -= qty;
-            }
-        });
-        return total;
-    }
-
     function renderAllViews() {
-        let totalUnits = 0, inUnits = 0, outUnits = 0;
-        products.forEach(p => totalUnits += getProductCurrentStock(p.name));
-        transactions.forEach(t => {
-            const qty = Number(t.qty) || 0;
-            if (t.type === 'purchase') inUnits += qty;
-            if (t.type === 'sales') outUnits += qty;
-        });
+        recomputeStockMetrics();
 
-        document.getElementById('heroTotalUnits').innerText = `${totalUnits} Units`;
-        document.getElementById('dashProdCount').innerText = products.length;
-        document.getElementById('dashInCount').innerText = inUnits;
-        document.getElementById('dashOutCount').innerText = outUnits;
+        // 1. Filtered Catalog
+        const catQuery = (document.getElementById('catalogSearchQuery')?.value || '').trim().toLowerCase();
+        const filteredProducts = [];
+        for (let i = 0; i < products.length; i++) {
+            const p = products[i];
+            if (!catQuery || (p.name || '').toLowerCase().includes(catQuery) || (p.supplier || '').toLowerCase().includes(catQuery)) {
+                filteredProducts.push({ item: p, originalIndex: i });
+            }
+        }
+
+        const maxRender = 100;
+        const catalogSlice = filteredProducts.slice(0, maxRender);
 
         const pTbody = document.getElementById('productTableBody');
-        pTbody.innerHTML = products.map((p, idx) => {
-            const stock = getProductCurrentStock(p.name);
+        pTbody.innerHTML = catalogSlice.map(({ item: p, originalIndex: realIdx }) => {
+            const stock = stockMap.get(p.name.toLowerCase()) || 0;
+            const isLow = stock <= (Number(p.threshold) || 0);
             return `<tr>
                 <td><strong>${escapeHtml(p.name)}</strong></td>
                 <td>${escapeHtml(p.supplier) || '-'}</td>
-                <td class="num" style="font-weight:bold; color:${stock <= p.threshold ? '#ef4444' : '#0f172a'}">${stock}</td>
+                <td class="num" style="font-weight:bold; color:${isLow ? '#dc2626' : '#0f172a'}">${stock}</td>
                 <td>${p.threshold}</td>
-                <td><button class="action-btn" onclick="deleteProductByIndex(${idx})">🗑️</button></td>
+                <td>
+                    <div class="btn-action-group">
+                        <button class="action-btn-in" title="Add Stock" onclick="quickStockTx(${realIdx}, 'purchase')">+ Tx</button>
+                        <button class="action-btn-out" title="Reduce Stock" onclick="quickStockTx(${realIdx}, 'sales')">- Tx</button>
+                        <button class="action-btn-edit" title="Edit Product" onclick="openEditProduct(${realIdx})">✏️</button>
+                        <button class="action-btn-del" title="Delete Product" onclick="deleteProductByIndex(${realIdx})">🗑️</button>
+                    </div>
+                </td>
             </tr>`;
-        }).join('') || '<tr><td colspan="5" style="text-align:center;">No records</td></tr>';
+        }).join('') || '<tr><td colspan="5" style="text-align:center;">No matching products found</td></tr>';
+
+        const pCards = document.getElementById('productMobileCardsBody');
+        pCards.innerHTML = catalogSlice.map(({ item: p, originalIndex: realIdx }) => {
+            const stock = stockMap.get(p.name.toLowerCase()) || 0;
+            const isLow = stock <= (Number(p.threshold) || 0);
+            return `
+                <div class="mobile-item-card">
+                    <div class="mobile-card-row-top">
+                        <div class="mobile-card-title">${escapeHtml(p.name)}</div>
+                        <span class="supplier-badge">${escapeHtml(p.supplier || 'Unassigned')}</span>
+                    </div>
+                    <div class="mobile-card-metric-row">
+                        <span>Available Stock: <strong style="color:${isLow ? '#dc2626' : '#0f172a'}; font-size:13px;">${stock}</strong></span>
+                        <span style="color:#64748b; font-size:11px;">Threshold: ${p.threshold}</span>
+                    </div>
+                    <div class="mobile-card-actions">
+                        <button class="action-btn-in" onclick="quickStockTx(${realIdx}, 'purchase')">+ Tx (In)</button>
+                        <button class="action-btn-out" onclick="quickStockTx(${realIdx}, 'sales')">- Tx (Out)</button>
+                        <button class="action-btn-edit" onclick="openEditProduct(${realIdx})">✏️ Edit</button>
+                        <button class="action-btn-del" onclick="deleteProductByIndex(${realIdx})">🗑️</button>
+                    </div>
+                </div>
+            `;
+        }).join('') || '<div style="text-align:center; padding:16px; color:#64748b;">No matching products found</div>';
+
+        // 2. Filtered Transactions
+        const txQuery = (document.getElementById('txSearchQuery')?.value || '').trim().toLowerCase();
+        const txDateQuery = (document.getElementById('txSearchDate')?.value || '').trim();
+
+        const filteredTx = [];
+        for (let k = transactions.length - 1; k >= 0; k--) {
+            const t = transactions[k];
+            const matchesQuery = !txQuery || 
+                (t.product || '').toLowerCase().includes(txQuery) || 
+                (t.type || '').toLowerCase().includes(txQuery) || 
+                (t.desc || '').toLowerCase().includes(txQuery);
+            const matchesDate = !txDateQuery || cleanDate(t.date) === txDateQuery;
+
+            if (matchesQuery && matchesDate) {
+                filteredTx.push({ item: t, originalIdx: k });
+            }
+        }
+
+        const txSlice = filteredTx.slice(0, maxRender);
 
         const tTbody = document.getElementById('txTableBody');
-        tTbody.innerHTML = transactions.map((t, idx) => `
+        tTbody.innerHTML = txSlice.map(({ item: t, originalIdx }) => `
             <tr>
-                <td>${escapeHtml(t.date)}</td>
+                <td>${cleanDate(t.date)}</td>
                 <td><strong>${escapeHtml(t.product)}</strong></td>
-                <td style="color:${t.type === 'purchase' ? '#059669' : '#dc2626'}">${escapeHtml((t.type || '').toUpperCase())}</td>
+                <td style="font-weight:700; color:${t.type === 'purchase' ? '#059669' : '#dc2626'}">${escapeHtml((t.type || '').toUpperCase())}</td>
                 <td class="num">${t.qty}</td>
                 <td>${escapeHtml(t.desc) || '-'}</td>
-                <td><button class="action-btn" onclick="deleteTxByIndex(${idx})">🗑️</button></td>
+                <td>
+                    <div class="btn-action-group">
+                        <button class="action-btn-edit" title="Edit Transaction" onclick="openEditTx(${originalIdx})">✏️</button>
+                        <button class="action-btn-del" title="Delete Transaction" onclick="deleteTxByIndex(${originalIdx})">🗑️</button>
+                    </div>
+                </td>
             </tr>
-        `).join('') || '<tr><td colspan="6" style="text-align:center;">No records</td></tr>';
+        `).join('') || '<tr><td colspan="6" style="text-align:center;">No matching transaction records</td></tr>';
+
+        const tCards = document.getElementById('txMobileCardsBody');
+        tCards.innerHTML = txSlice.map(({ item: t, originalIdx }) => {
+            const isPurchase = t.type === 'purchase';
+            return `
+                <div class="mobile-item-card">
+                    <div class="mobile-card-row-top">
+                        <div class="mobile-card-title">${escapeHtml(t.product)}</div>
+                        <span style="padding:2px 8px; border-radius:12px; font-size:10px; font-weight:800; background:${isPurchase ? '#dcfce7' : '#fee2e2'}; color:${isPurchase ? '#15803d' : '#b91c1c'};">
+                            ${escapeHtml((t.type || '').toUpperCase())}
+                        </span>
+                    </div>
+                    <div class="mobile-card-sub">Date: ${cleanDate(t.date)} · ${escapeHtml(t.desc) || 'No notes'}</div>
+                    <div class="mobile-card-metric-row">
+                        <span>Movement Quantity:</span>
+                        <strong style="color:${isPurchase ? '#16a34a' : '#dc2626'}; font-size:13px;">${isPurchase ? '+' : '-'}${t.qty} units</strong>
+                    </div>
+                    <div class="mobile-card-actions">
+                        <button class="action-btn-edit" onclick="openEditTx(${originalIdx})">✏️ Edit</button>
+                        <button class="action-btn-del" onclick="deleteTxByIndex(${originalIdx})">🗑️ Delete</button>
+                    </div>
+                </div>
+            `;
+        }).join('') || '<div style="text-align:center; padding:16px; color:#64748b;">No matching transactions found</div>';
+
+        renderReportContent();
     }
 
     function navigate(section) {
-        ['dashboard', 'inventory', 'transaction'].forEach(s => {
-            document.getElementById(`${s}-section`).style.display = s === section ? 'block' : 'none';
-            document.getElementById(`btn-nav-${s}`).classList.toggle('active', s === section);
+        ['dashboard', 'inventory', 'transaction', 'reports', 'settings'].forEach(s => {
+            const el = document.getElementById(`${s}-section`);
+            if (el) el.style.display = s === section ? 'block' : 'none';
+
+            const dBtn = document.getElementById(`sbtn-${s}`);
+            if (dBtn) dBtn.classList.toggle('active', s === section);
+
+            const bBtn = document.getElementById(`bnav-${s}`);
+            if (bBtn) bBtn.classList.toggle('active', s === section);
         });
+        if (section === 'reports') renderReportContent();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    
+
+    function openReportDirectly(tab, reportType) {
+        navigate('reports');
+        selectReportTab(tab);
+        if (reportType === 'low') showLowStockReorderReport();
+        else if (reportType === 'ledger') showInventoryLedgerReport();
+    }
+
+    // Product Modals & Submissions
     function openProductModal() {
+        document.getElementById('mProdTitle').innerText = 'Save Product';
+        document.getElementById('mProdEditOriginalName').value = '';
         document.getElementById('mProdName').value = '';
         document.getElementById('mProdSupplier').value = '';
         document.getElementById('mProdQty').value = '';
@@ -398,69 +998,722 @@
         document.getElementById('productModal').style.display = 'flex';
     }
 
+    function openEditProduct(idx) {
+        const p = products[idx];
+        if (!p) return;
+        document.getElementById('mProdTitle').innerText = 'Edit Product';
+        document.getElementById('mProdEditOriginalName').value = p.name;
+        document.getElementById('mProdName').value = p.name;
+        document.getElementById('mProdSupplier').value = p.supplier || '';
+        document.getElementById('mProdQty').value = p.qty;
+        document.getElementById('mProdThreshold').value = p.threshold;
+        document.getElementById('productModal').style.display = 'flex';
+    }
+
     async function submitProduct() {
+        const orig = document.getElementById('mProdEditOriginalName').value;
         const item = {
             name: document.getElementById('mProdName').value.trim(),
             supplier: document.getElementById('mProdSupplier').value.trim(),
             qty: parseInt(document.getElementById('mProdQty').value, 10) || 0,
             threshold: parseInt(document.getElementById('mProdThreshold').value, 10) || 2
         };
-        if (!item.name) return showToast("Name required", "error");
+        if (!item.name) return showToast("Product name required", "error");
 
-        const res = await callBackend('SAVE_PRODUCT', { product: item });
-        if (res.success) {
-            closeModal('productModal');
+        closeModal('productModal');
+
+        if (orig) {
+            const target = products.find(p => p.name.toLowerCase() === orig.toLowerCase());
+            if (target) Object.assign(target, item);
+        } else {
+            products.unshift(item);
+        }
+        renderAllViews();
+        showToast("Product saved");
+
+        const res = await callBackend('SAVE_PRODUCT', { product: item, original_name: orig });
+        if (!res.success) {
+            showToast("Server sync failed, reloading data", "error");
             loadCompanyData();
-            showToast("Product saved");
         }
     }
 
-    async function deleteProductByIndex(idx) {
+    function deleteProductByIndex(idx) {
         const p = products[idx];
-        if (!p || !confirm(`Delete product "${p.name}"?`)) return;
-        const res = await callBackend('DELETE_PRODUCT', { product_name: p.name });
-        if (res.success) {
-            loadCompanyData();
-            showToast("Product deleted");
+        if (!p) return;
+
+        const hasTx = transactions.some(t => (t.product || '').toLowerCase() === p.name.toLowerCase());
+        if (hasTx) {
+            return showToast(`Cannot delete "${p.name}". It has existing transaction records.`, "error");
         }
+
+        triggerConfirmation(`Are you sure you want to delete product "${p.name}"?`, async () => {
+            const removed = products.splice(idx, 1)[0];
+            renderAllViews();
+            showToast("Product deleted");
+
+            const res = await callBackend('DELETE_PRODUCT', { product_name: removed.name });
+            if (!res.success) {
+                showToast("Delete failed on server", "error");
+                products.splice(idx, 0, removed);
+                renderAllViews();
+            }
+        });
+    }
+
+    function updateModalStockIndicator(productName) {
+        const pill = document.getElementById('mTxStockPill');
+        if (!productName) {
+            pill.style.display = 'none';
+            return;
+        }
+        const avail = stockMap.get(productName.trim().toLowerCase());
+        if (avail !== undefined) {
+            pill.style.display = 'block';
+            pill.innerText = `Available Stock: ${avail} units`;
+        } else {
+            pill.style.display = 'none';
+        }
+    }
+
+    function quickStockTx(prodIdx, type) {
+        const p = products[prodIdx];
+        if (!p) return;
+        openTxModal();
+        document.getElementById('mTxProductSearch').value = p.name;
+        updateModalStockIndicator(p.name);
+        document.getElementById('mTxType').value = type;
+        document.getElementById('mTxQty').focus();
     }
 
     function openTxModal() {
         if (!products.length) return showToast("Add a product first", "error");
-        const sel = document.getElementById('mTxProduct');
-        sel.innerHTML = products.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('');
+        document.getElementById('mTxTitle').innerText = 'Record Transaction';
+        document.getElementById('mTxEditId').value = '';
+        
+        const dl = document.getElementById('productListDatalist');
+        dl.innerHTML = products.map(p => `<option value="${escapeHtml(p.name)}">`).join('');
+        
+        document.getElementById('mTxProductSearch').value = '';
+        document.getElementById('mTxStockPill').style.display = 'none';
         document.getElementById('mTxDate').value = new Date().toISOString().split('T')[0];
         document.getElementById('mTxQty').value = '';
         document.getElementById('mTxDesc').value = '';
         document.getElementById('txModal').style.display = 'flex';
     }
 
+    function openEditTx(idx) {
+        const t = transactions[idx];
+        if (!t) return;
+        openTxModal();
+        document.getElementById('mTxTitle').innerText = 'Edit Transaction';
+        document.getElementById('mTxEditId').value = t.id || idx;
+        document.getElementById('mTxDate').value = cleanDate(t.date);
+        document.getElementById('mTxProductSearch').value = t.product;
+        updateModalStockIndicator(t.product);
+        document.getElementById('mTxType').value = t.type;
+        document.getElementById('mTxQty').value = t.qty;
+        document.getElementById('mTxDesc').value = t.desc || '';
+    }
+
     async function submitTransaction() {
+        const txId = document.getElementById('mTxEditId').value;
+        const prod = document.getElementById('mTxProductSearch').value.trim();
         const tx = {
+            id: txId || ('tx_' + Date.now()),
             date: document.getElementById('mTxDate').value,
-            product: document.getElementById('mTxProduct').value,
+            product: prod,
             type: document.getElementById('mTxType').value,
             qty: parseInt(document.getElementById('mTxQty').value, 10) || 0,
             desc: document.getElementById('mTxDesc').value.trim()
         };
-        if (!tx.date || !tx.product || tx.qty <= 0) return showToast("Invalid transaction input", "error");
+
+        if (!tx.date || !tx.product || tx.qty <= 0) return showToast("Invalid transaction entry", "error");
+
+        closeModal('txModal');
+
+        if (txId) {
+            const target = transactions.find(t => t.id === txId);
+            if (target) Object.assign(target, tx);
+        } else {
+            transactions.push(tx);
+        }
+        renderAllViews();
+        showToast("Transaction saved");
 
         const res = await callBackend('SAVE_TRANSACTION', { transaction: tx });
-        if (res.success) {
-            closeModal('txModal');
+        if (!res.success) {
+            showToast("Server sync failed, reloading data", "error");
             loadCompanyData();
-            showToast("Transaction logged");
         }
     }
 
-    async function deleteTxByIndex(idx) {
+    function deleteTxByIndex(idx) {
         const t = transactions[idx];
-        if (!t || !confirm("Delete transaction?")) return;
-        const res = await callBackend('DELETE_TRANSACTION', { tx_id: t.id });
-        if (res.success) {
-            loadCompanyData();
+        if (!t) return;
+
+        triggerConfirmation("Are you sure you want to delete this transaction entry?", async () => {
+            const removed = transactions.splice(idx, 1)[0];
+            renderAllViews();
             showToast("Transaction removed");
+
+            const res = await callBackend('DELETE_TRANSACTION', { tx_id: removed.id });
+            if (!res.success) {
+                showToast("Delete failed on server", "error");
+                transactions.splice(idx, 0, removed);
+                renderAllViews();
+            }
+        });
+    }
+
+    // CSV Import / Export
+    function exportCatalogCSV() {
+        if (!products.length) return showToast("No products to export", "error");
+        let csv = "Product Name,Supplier,Available Stock,Threshold\n";
+        for (let i = 0; i < products.length; i++) {
+            const p = products[i];
+            const stock = stockMap.get(p.name.toLowerCase()) || 0;
+            csv += `"${p.name}","${p.supplier || ''}",${stock},${p.threshold}\n`;
         }
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `StockCatalog_${activeCompanyId}.csv`;
+        link.click();
+        showToast("Catalog exported");
+    }
+
+    function handleCSVImport(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async function(evt) {
+            const lines = evt.target.result.split('\n');
+            let addedCount = 0;
+            for (let i = 1; i < lines.length; i++) {
+                const row = lines[i].split(',').map(s => s.replace(/"/g, '').trim());
+                if (row[0]) {
+                    const prod = {
+                        name: row[0],
+                        supplier: row[1] || 'General',
+                        qty: parseInt(row[2], 10) || 0,
+                        threshold: parseInt(row[3], 10) || 2
+                    };
+                    products.unshift(prod);
+                    addedCount++;
+                    callBackend('SAVE_PRODUCT', { product: prod });
+                }
+            }
+            renderAllViews();
+            showToast(`Imported ${addedCount} products`);
+        };
+        reader.readAsText(file);
+    }
+
+    // Reports Section
+    function selectReportTab(tab) {
+        activeReportTab = tab;
+        ['day', 'inv', 'sup'].forEach(t => {
+            document.getElementById(`pill-${t}`).classList.toggle('active', t === tab);
+        });
+        renderReportContent();
+    }
+
+    function toggleReportsHeader(show) {
+        const header = document.getElementById('reportsMainHeaderContainer');
+        if (header) header.style.display = show ? 'block' : 'none';
+    }
+
+    function renderReportContent() {
+        toggleReportsHeader(true);
+        const target = document.getElementById('reportDynamicView');
+        if (!target) return;
+
+        if (activeReportTab === 'day') {
+            target.innerHTML = `
+                <div class="report-card-menu">
+                    <div style="font-weight:800; font-size:14px; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                        <span>📅</span> Day-wise Reports
+                    </div>
+                    <div class="report-card-item" onclick="showPeriodicReport('day')">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="report-icon-box">🗓️</div>
+                            <div>
+                                <div style="font-weight:800; font-size:13.5px;">Day-wise Summary</div>
+                                <div style="font-size:11.5px; color:#64748b;">Purchases & sales grouped by day (Click day for transactions)</div>
+                            </div>
+                        </div>
+                        <span style="color:#94a3b8;">›</span>
+                    </div>
+                    <div class="report-card-item" onclick="showPeriodicReport('month')">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="report-icon-box">📅</div>
+                            <div>
+                                <div style="font-weight:800; font-size:13.5px;">Month-wise Summary</div>
+                                <div style="font-size:11.5px; color:#64748b;">Purchases & sales grouped by month (Click month for days)</div>
+                            </div>
+                        </div>
+                        <span style="color:#94a3b8;">›</span>
+                    </div>
+                    <div class="report-card-item" onclick="showPeriodicReport('year')">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="report-icon-box">🗓️</div>
+                            <div>
+                                <div style="font-weight:800; font-size:13.5px;">Year-wise Summary</div>
+                                <div style="font-size:11.5px; color:#64748b;">Purchases & sales grouped by year (Click year for months)</div>
+                            </div>
+                        </div>
+                        <span style="color:#94a3b8;">›</span>
+                    </div>
+                </div>
+            `;
+        } else if (activeReportTab === 'inv') {
+            target.innerHTML = `
+                <div class="report-card-menu">
+                    <div style="font-weight:800; font-size:14px; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                        <span>📦</span> Inventory Reports
+                    </div>
+                    <div class="report-card-item" onclick="showInventorySummaryReport()">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="report-icon-box">📦</div>
+                            <div>
+                                <div style="font-weight:800; font-size:13.5px;">Stock Summary</div>
+                                <div style="font-size:11.5px; color:#64748b;">Opening, purchased, sold & available stock</div>
+                            </div>
+                        </div>
+                        <span style="color:#94a3b8;">›</span>
+                    </div>
+                    <div class="report-card-item" onclick="showInventoryLedgerReport()">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="report-icon-box">📙</div>
+                            <div>
+                                <div style="font-weight:800; font-size:13.5px;">Stock Ledger</div>
+                                <div style="font-size:11.5px; color:#64748b;">Full purchase/sale movement history per product</div>
+                            </div>
+                        </div>
+                        <span style="color:#94a3b8;">›</span>
+                    </div>
+                    <div class="report-card-item" onclick="showLowStockReorderReport()">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="report-icon-box">⚠️</div>
+                            <div>
+                                <div style="font-weight:800; font-size:13.5px;">Low Stock / Reorder Report</div>
+                                <div style="font-size:11.5px; color:#64748b;">Items at or below their reorder threshold</div>
+                            </div>
+                        </div>
+                        <span style="color:#94a3b8;">›</span>
+                    </div>
+                </div>
+            `;
+        } else if (activeReportTab === 'sup') {
+            target.innerHTML = `
+                <div class="report-card-menu">
+                    <div style="font-weight:800; font-size:14px; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                        <span>🏢</span> Supplier Reports
+                    </div>
+                    <div class="report-card-item" onclick="showSupplierWiseDetailReport()">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="report-icon-box">🏢</div>
+                            <div>
+                                <div style="font-weight:800; font-size:13.5px;">Supplier-wise Report</div>
+                                <div style="font-size:11.5px; color:#64748b;">Stock movement grouped by supplier</div>
+                            </div>
+                        </div>
+                        <span style="color:#94a3b8;">›</span>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    function showPeriodicReport(period, filterVal = null) {
+        toggleReportsHeader(false);
+        const groups = {};
+
+        for (let i = 0; i < transactions.length; i++) {
+            const t = transactions[i];
+            const dateStr = cleanDate(t.date);
+            if (filterVal && !dateStr.startsWith(filterVal)) continue;
+
+            let key = dateStr;
+            if (period === 'month') key = dateStr.substring(0, 7);
+            if (period === 'year') key = dateStr.substring(0, 4);
+
+            if (!groups[key]) groups[key] = { in: 0, out: 0 };
+            const qty = Number(t.qty) || 0;
+            if (t.type === 'purchase') groups[key].in += qty;
+            if (t.type === 'sales') groups[key].out += qty;
+        }
+
+        let backAction = "renderReportContent()";
+        let subTitle = `${period.toUpperCase()}-WISE SUMMARY`;
+        if (filterVal) {
+            if (period === 'month') {
+                backAction = "showPeriodicReport('year')";
+                subTitle = `Months in ${filterVal}`;
+            } else if (period === 'day') {
+                backAction = `showPeriodicReport('month', '${filterVal.substring(0,4)}')`;
+                subTitle = `Days in ${filterVal}`;
+            }
+        }
+
+        const rows = Object.keys(groups).sort().reverse().map(k => {
+            let clickAttr = '';
+            if (period === 'year') {
+                clickAttr = `onclick="showPeriodicReport('month', '${k}')" title="Click to view months in ${k}"`;
+            } else if (period === 'month') {
+                clickAttr = `onclick="showPeriodicReport('day', '${k}')" title="Click to view days in ${k}"`;
+            } else if (period === 'day') {
+                clickAttr = `onclick="showDayTransactionsDetail('${k}')" title="Click to view transactions on ${k}"`;
+            }
+
+            return `
+                <tr class="drill-clickable-row" ${clickAttr}>
+                    <td><strong>${k}</strong> <span style="font-size:11px; color:#0284c7;">›</span></td>
+                    <td class="num" style="color:#16a34a; font-weight:700;">+${groups[k].in}</td>
+                    <td class="num" style="color:#dc2626; font-weight:700;">-${groups[k].out}</td>
+                    <td class="num" style="font-weight:800;">${groups[k].in - groups[k].out}</td>
+                </tr>
+            `;
+        }).join('');
+
+        const target = document.getElementById('reportDynamicView');
+        target.innerHTML = `
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <button class="action-btn-del" onclick="${backAction}">← Back</button>
+                    <span style="font-weight:800; font-size:15px;">${subTitle}</span>
+                    <button class="add-row-btn" onclick="printReportContent()">📥 Download PDF</button>
+                </div>
+                <div style="font-size:12px; color:#64748b; margin-bottom:10px;">💡 Click any row to drill down into deeper records.</div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th class="num">Purchases (In)</th>
+                                <th class="num">Sales (Out)</th>
+                                <th class="num">Net Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows || '<tr><td colspan="4" style="text-align:center;">No activity logged</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    function showDayTransactionsDetail(exactDate) {
+        toggleReportsHeader(false);
+        const dayTxs = transactions.filter(t => cleanDate(t.date) === exactDate);
+        const monthPrefix = exactDate.substring(0, 7);
+
+        const rows = dayTxs.map(t => `
+            <tr>
+                <td>${cleanDate(t.date)}</td>
+                <td><strong>${escapeHtml(t.product)}</strong></td>
+                <td style="color:${t.type === 'purchase' ? '#16a34a' : '#dc2626'}; font-weight:700;">${escapeHtml(t.type.toUpperCase())}</td>
+                <td class="num">${t.qty}</td>
+                <td>${escapeHtml(t.desc) || '-'}</td>
+            </tr>
+        `).join('');
+
+        const target = document.getElementById('reportDynamicView');
+        target.innerHTML = `
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <button class="action-btn-del" onclick="showPeriodicReport('day', '${monthPrefix}')">← Back to Days</button>
+                    <span style="font-weight:800; font-size:15px;">Transactions on ${exactDate}</span>
+                    <button class="add-row-btn" onclick="printReportContent()">📥 Download PDF</button>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>Type</th>
+                                <th class="num">Qty</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows || '<tr><td colspan="5" style="text-align:center;">No transactions on this date</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    function showInventoryLedgerReport() {
+        toggleReportsHeader(false);
+        const prodNames = products.map(p => p.name);
+
+        let filtered = [...transactions].reverse();
+        if (currentLedgerProductFilter !== 'all') {
+            filtered = filtered.filter(t => (t.product || '').toLowerCase() === currentLedgerProductFilter.toLowerCase());
+        }
+
+        const rows = filtered.map(t => `
+            <tr>
+                <td>${cleanDate(t.date)}</td>
+                <td><strong>${escapeHtml(t.product)}</strong></td>
+                <td style="font-weight:700; color:${t.type === 'purchase' ? '#16a34a' : '#dc2626'}">${escapeHtml(t.type.toUpperCase())}</td>
+                <td class="num">${t.qty}</td>
+                <td>${escapeHtml(t.desc) || '-'}</td>
+            </tr>
+        `).join('');
+
+        const target = document.getElementById('reportDynamicView');
+        target.innerHTML = `
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <button class="action-btn-del" onclick="renderReportContent()">← Back</button>
+                    <span style="font-weight:800; font-size:15px;">Complete Stock Ledger</span>
+                    <button class="add-row-btn" onclick="printReportContent()">📥 Download PDF</button>
+                </div>
+
+                <div style="margin-bottom:12px;">
+                    <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px;">Select Product:</div>
+                    <select class="modal-input-field" style="margin:0;" onchange="currentLedgerProductFilter = this.value; showInventoryLedgerReport();">
+                        <option value="all" ${currentLedgerProductFilter === 'all' ? 'selected' : ''}>-- All Products --</option>
+                        ${prodNames.map(name => `<option value="${escapeHtml(name)}" ${currentLedgerProductFilter === name ? 'selected' : ''}>${escapeHtml(name)}</option>`).join('')}
+                    </select>
+                </div>
+
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>Type</th>
+                                <th class="num">Qty</th>
+                                <th>Notes / Supplier</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows || '<tr><td colspan="5" style="text-align:center;">No ledger records found</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    function showInventorySummaryReport() {
+        toggleReportsHeader(false);
+        const rows = products.map(p => {
+            let pIn = 0, pOut = 0;
+            const pName = p.name.toLowerCase();
+            for (let i = 0; i < transactions.length; i++) {
+                const t = transactions[i];
+                if ((t.product || '').toLowerCase() === pName) {
+                    const qty = Number(t.qty) || 0;
+                    if (t.type === 'purchase') pIn += qty;
+                    if (t.type === 'sales') pOut += qty;
+                }
+            }
+            const avail = stockMap.get(pName) || 0;
+            return `
+                <tr>
+                    <td><strong>${escapeHtml(p.name)}</strong></td>
+                    <td class="num">${p.qty}</td>
+                    <td class="num" style="color:#16a34a;">+${pIn}</td>
+                    <td class="num" style="color:#dc2626;">-${pOut}</td>
+                    <td class="num" style="font-weight:800;">${avail}</td>
+                </tr>
+            `;
+        }).join('');
+
+        const target = document.getElementById('reportDynamicView');
+        target.innerHTML = `
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <button class="action-btn-del" onclick="renderReportContent()">← Back</button>
+                    <span style="font-weight:800; font-size:15px;">Stock Summary</span>
+                    <button class="add-row-btn" onclick="printReportContent()">📥 Download PDF</button>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th class="num">Opening</th>
+                                <th class="num">Purchased</th>
+                                <th class="num">Sold</th>
+                                <th class="num">Available</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows || '<tr><td colspan="5" style="text-align:center;">No products</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    function showLowStockReorderReport() {
+        toggleReportsHeader(false);
+        const items = products.filter(p => (stockMap.get(p.name.toLowerCase()) || 0) <= (Number(p.threshold) || 0));
+        const rows = items.map(p => `
+            <tr>
+                <td><strong>${escapeHtml(p.name)}</strong></td>
+                <td>${escapeHtml(p.supplier || '-')}</td>
+                <td class="num" style="color:#dc2626; font-weight:800;">${stockMap.get(p.name.toLowerCase()) || 0}</td>
+                <td class="num">${p.threshold}</td>
+                <td><button class="action-btn-in" onclick="navigate('inventory'); openTxModal();">+ Quick Order</button></td>
+            </tr>
+        `).join('');
+
+        const target = document.getElementById('reportDynamicView');
+        target.innerHTML = `
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <button class="action-btn-del" onclick="renderReportContent()">← Back</button>
+                    <span style="font-weight:800; font-size:15px; color:#b91c1c;">⚠️ Reorder / Low Stock Report</span>
+                    <button class="add-row-btn" onclick="printReportContent()">📥 Download PDF</button>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Supplier</th>
+                                <th class="num">Available</th>
+                                <th class="num">Reorder Threshold</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows || '<tr><td colspan="5" style="text-align:center;">All items sufficiently stocked</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    function showSupplierWiseDetailReport() {
+        toggleReportsHeader(false);
+        const suppliers = [...new Set(products.map(p => p.supplier || 'Unassigned'))];
+        
+        let filteredProducts = products;
+        if (currentSupplierFilter !== 'all') {
+            filteredProducts = products.filter(p => (p.supplier || 'Unassigned') === currentSupplierFilter);
+        }
+
+        let totalPurchased = 0;
+        let totalSold = 0;
+
+        filteredProducts.forEach(p => {
+            const pName = p.name.toLowerCase();
+            for (let i = 0; i < transactions.length; i++) {
+                const t = transactions[i];
+                if ((t.product || '').toLowerCase() === pName) {
+                    const qty = Number(t.qty) || 0;
+                    if (t.type === 'purchase') totalPurchased += qty;
+                    if (t.type === 'sales') totalSold += qty;
+                }
+            }
+        });
+
+        const rows = filteredProducts.map(p => {
+            let pIn = 0, pOut = 0;
+            const pName = p.name.toLowerCase();
+            for (let i = 0; i < transactions.length; i++) {
+                const t = transactions[i];
+                if ((t.product || '').toLowerCase() === pName) {
+                    const qty = Number(t.qty) || 0;
+                    if (t.type === 'purchase') pIn += qty;
+                    if (t.type === 'sales') pOut += qty;
+                }
+            }
+            const avail = stockMap.get(pName) || 0;
+            return `
+                <tr>
+                    <td><span class="supplier-badge">${escapeHtml(p.supplier || 'Unassigned')}</span></td>
+                    <td><strong>${escapeHtml(p.name)}</strong></td>
+                    <td class="num" style="color:#16a34a; font-weight:700;">+${pIn}</td>
+                    <td class="num" style="color:#dc2626; font-weight:700;">-${pOut}</td>
+                    <td class="num" style="font-weight:800;">${avail}</td>
+                </tr>
+            `;
+        }).join('');
+
+        const target = document.getElementById('reportDynamicView');
+        target.innerHTML = `
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <button class="action-btn-del" onclick="renderReportContent()">← Back</button>
+                    <span style="font-weight:800; font-size:15px;">Supplier-wise Report</span>
+                    <button class="add-row-btn" onclick="printReportContent()">📥 Download PDF</button>
+                </div>
+
+                <div style="margin-bottom:12px;">
+                    <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:4px;">Select Supplier:</div>
+                    <select class="modal-input-field" style="margin:0;" onchange="currentSupplierFilter = this.value; showSupplierWiseDetailReport();">
+                        <option value="all" ${currentSupplierFilter === 'all' ? 'selected' : ''}>-- All Suppliers --</option>
+                        ${suppliers.map(s => `<option value="${escapeHtml(s)}" ${currentSupplierFilter === s ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('')}
+                    </select>
+                </div>
+
+                <div class="stat-pill-row">
+                    <span>🏢 Suppliers: ${currentSupplierFilter === 'all' ? suppliers.length : 1}</span>
+                    <span style="color:#16a34a;">📈 Total Purchased: +${totalPurchased}</span>
+                    <span style="color:#dc2626;">📉 Total Sold: -${totalSold}</span>
+                </div>
+
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Supplier</th>
+                                <th>Product</th>
+                                <th class="num">Purchased</th>
+                                <th class="num">Sold</th>
+                                <th class="num">Available</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows || '<tr><td colspan="5" style="text-align:center;">No records</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    // Settings (Persistent Across Re-logins)
+    function saveWorkspaceOrg() {
+        const val = document.getElementById('setCompanyName').value.trim();
+        if (!val) return showToast("Enter company title", "error");
+        
+        // Save persistently for this tenant
+        localStorage.setItem('finsphere_org_name_' + activeCompanyId, val);
+        
+        document.getElementById('currentBrand').innerText = val;
+        document.getElementById('sideBrandTitle').innerText = val;
+        showToast("Company title updated permanently");
+    }
+
+    function exportDataJSON() {
+        const blob = new Blob([JSON.stringify({ products, transactions }, null, 2)], { type: "application/json" });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `StockBook_Backup_${activeCompanyId}_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        showToast("Backup exported");
+    }
+
+    function executeRestore(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (evt) => {
+            try {
+                const data = JSON.parse(evt.target.result);
+                if (data.products && Array.isArray(data.products)) products = data.products;
+                if (data.transactions && Array.isArray(data.transactions)) transactions = data.transactions;
+                renderAllViews();
+                showToast("Workspace restored locally");
+            } catch (err) {
+                showToast("Invalid JSON file", "error");
+            }
+        };
+        reader.readAsText(file);
     }
 
     function openRegisterModal() {
@@ -482,20 +1735,10 @@
         if (!username || !password || !confirmPassword || !companyId || !companyName) {
             return showToast("Complete all fields", "error");
         }
-        if (password !== confirmPassword) {
-            return showToast("Passwords do not match", "error");
-        }
-        if (password.length < 6) {
-            return showToast("Password must be at least 6 characters", "error");
-        }
+        if (password !== confirmPassword) return showToast("Passwords do not match", "error");
+        if (password.length < 6) return showToast("Password must be at least 6 characters", "error");
 
-        const res = await callBackend('REGISTER', {
-            username,
-            password,
-            company_id: companyId,
-            company_name: companyName
-        });
-
+        const res = await callBackend('REGISTER', { username, password, company_id: companyId, company_name: companyName });
         if (res.success) {
             closeModal('registerModal');
             document.getElementById('loginUsername').value = username;
@@ -510,6 +1753,66 @@
     if (sessionToken && currentUser) {
         bootstrapApp();
     }
+
+    function printReportContent() {
+    const reportBox = document.getElementById('reportDynamicView');
+    if (!reportBox) return;
+
+    // Read stored org name
+    const orgName = localStorage.getItem('finsphere_org_name_' + activeCompanyId) || activeCompanyId || 'StockBook';
+
+    // Insert a printable header banner if it doesn't already exist
+    let printHeader = document.getElementById('printableReportHeader');
+    if (!printHeader) {
+        printHeader = document.createElement('div');
+        printHeader.id = 'printableReportHeader';
+        printHeader.style.marginBottom = '14px';
+        printHeader.style.paddingBottom = '8px';
+        printHeader.style.borderBottom = '2px solid #0284c7';
+        reportBox.insertBefore(printHeader, reportBox.firstChild);
+    }
+
+    printHeader.innerHTML = `
+        <div style="font-size: 18px; font-weight: 900; color: #0f172a;">${escapeHtml(orgName)}</div>
+        <div style="font-size: 11px; color: #64748b;">Generated on: ${new Date().toLocaleString()} | Tenant: ${escapeHtml(activeCompanyId)}</div>
+    `;
+
+    window.print();
+}
+
+function bootstrapApp() {
+    document.getElementById('auth-screen-container').style.display = 'none';
+    document.getElementById('main-app-content').style.display = 'flex';
+    
+    const displayUser = currentUser ? currentUser.username : 'User';
+    document.getElementById('headerUsernameDisplay').innerText = displayUser;
+    document.getElementById('sidebarUsernameDisplay').innerText = displayUser;
+
+    // Set first letter in avatar circle
+    const avatarEl = document.getElementById('sidebarUserAvatar');
+    if (avatarEl) {
+        avatarEl.innerText = displayUser.charAt(0).toUpperCase();
+    }
+
+    if (currentUser && currentUser.role === 'superadmin') {
+        const selHeader = document.getElementById('superAdminCompanySelect');
+        const selSidebar = document.getElementById('superAdminSidebarSelect');
+        const options = companiesCache.map(c => 
+            `<option value="${escapeHtml(c.company_id)}" ${c.company_id === activeCompanyId ? 'selected' : ''}>${escapeHtml(c.company_name)} (${escapeHtml(c.company_id)})</option>`
+        ).join('');
+        
+        selHeader.style.display = 'inline-block';
+        selHeader.innerHTML = options;
+
+        selSidebar.style.display = 'block';
+        selSidebar.innerHTML = options;
+
+        if (!activeCompanyId && companiesCache.length > 0) activeCompanyId = companiesCache[0].company_id;
+    }
+
+    renderHeaderPill();
+    loadCompanyData();
+}
 </script>
 </body>
 </html>
